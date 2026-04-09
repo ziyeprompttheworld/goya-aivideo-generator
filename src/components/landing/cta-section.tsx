@@ -33,11 +33,8 @@ export function CTASection() {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-background" />
-        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h / 0.05), oklch(from var(--primary) l c calc(h + 30) / 0.05))" }} />
-      </div>
+      {/* 全黑背景 */}
+      <div className="absolute inset-0 -z-10 bg-black" />
 
       <div className="container mx-auto px-4">
         <div className="relative max-w-6xl mx-auto">
@@ -47,20 +44,8 @@ export function CTASection() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-3xl border border-border bg-card dark:bg-black/40 backdrop-blur-xl overflow-hidden shadow-2xl"
+              className="relative border border-white/10 bg-transparent overflow-hidden font-plex-mono"
             >
-              {/* 边框光效 */}
-              <BorderBeam
-                size={400}
-                duration={12}
-                anchor={90}
-                borderWidth={2}
-                colorFrom="oklch(from var(--primary) l c h)"
-                colorTo="oklch(from var(--primary) l c calc(h + 40))"
-              />
-
-              {/* 顶部渐变装饰 */}
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 40)))" }} />
 
               <div className="grid md:grid-cols-2 gap-8 p-8 md:p-12">
                 {/* 左侧: 内容 */}
@@ -70,24 +55,24 @@ export function CTASection() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20"
+                    className="inline-flex items-center gap-2 px-3 py-1 border border-white/20"
                   >
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">
+                    <Sparkles className="h-3 w-3 text-white/50" />
+                    <span className="text-[10px] uppercase font-plex-mono tracking-widest text-white/50">
                       {t("badge")}
                     </span>
                   </motion.div>
 
                   {/* 标题 */}
-                  <h2 className="text-3xl md:text-4xl font-bold">
+                  <h2 className="text-2xl md:text-3xl font-light text-white lowercase tracking-widest leading-normal">
                     {t("title")}
-                    <span className="block bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mt-2">
+                    <span className="block text-white/50 mt-2">
                       {t("subtitle")}
                     </span>
                   </h2>
 
                   {/* 描述 */}
-                  <p className="text-lg text-muted-foreground">
+                  <p className="text-[11px] text-white/40 tracking-[0.1em] lowercase max-w-sm">
                     {t("description")}
                   </p>
 
@@ -102,9 +87,9 @@ export function CTASection() {
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
                           transition={{ delay: index * 0.1 }}
-                          className="flex items-center gap-3 text-muted-foreground"
+                          className="flex items-center gap-3 text-[11px] text-white/60 lowercase tracking-[0.05em]"
                         >
-                          <Icon className={cn("h-5 w-5 shrink-0", benefit.color)} />
+                          <Icon className="h-4 w-4 shrink-0 text-white/40" />
                           <span>{t(benefit.labelKey, { credits: NEW_USER_GIFT.credits })}</span>
                         </motion.li>
                       );
@@ -114,17 +99,12 @@ export function CTASection() {
                   {/* CTA 按钮组 */}
                   <div className="flex flex-wrap gap-4 pt-4">
                     <LocaleLink href="/#generator">
-                      <ShimmerButton
-                        shimmerColor="#ffffff"
-                        shimmerSize="0.05em"
-                        shimmerDuration="3s"
-                        borderRadius="100px"
-                        background="oklch(from var(--primary) l c h)"
-                        className="px-8 py-3 text-base font-medium shadow-lg shadow-primary/25"
+                      <div
+                        className="inline-flex items-center border border-white/20 px-8 py-3 text-[11px] font-plex-mono text-white/70 tracking-[0.1em] hover:border-white/50 transition-colors cursor-pointer lowercase"
                       >
                         {t("getStarted")}
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </ShimmerButton>
+                        <ArrowRight className="ml-2 h-3 w-3" />
+                      </div>
                     </LocaleLink>
 
                   </div>
@@ -163,38 +143,43 @@ export function CTASection() {
                   viewport={{ once: true }}
                   className="relative"
                 >
-                  {/* 装饰性光晕 */}
-                  <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full blur-3xl -z-10" style={{ background: "oklch(from var(--primary) l c h / 0.3)" }} />
-                  <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full blur-2xl -z-10" style={{ background: "oklch(from var(--primary) l c calc(h + 30) / 0.2)" }} />
-
                   {/* 视频预览卡片 */}
-                  <div className="relative rounded-2xl border border-border dark:border-white/10 bg-muted dark:bg-black/30 backdrop-blur-sm overflow-hidden">
-                    {/* 静态图片预览 (Video preview replaced with image for audit) */}
-                    <div className="aspect-video bg-muted/80 flex items-center justify-center overflow-hidden">
-                      <motion.img
-                        src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"
-                        alt="AI Video Generation Preview"
-                        className="w-full h-full object-cover"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.5 }}
-                      />
+                  <div className="relative border border-white/10 bg-black overflow-hidden font-plex-mono">
+                    <div className="aspect-video bg-black flex items-center justify-center overflow-hidden">
+                      <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      >
+                        <source src="/assets/seedance_showcase/1775188128418_vnfwuDsj.mp4" type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                      {/* Subtitle/Prompt Overlay */}
+                      <div className="absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-md border border-white/10 p-2 opacity-0 hover:opacity-100 transition-opacity">
+                        <p className="text-[9px] text-white/70 font-plex-mono leading-tight lowercase">
+                          → cinematic wide shot: glowing neon structures in a void, sharp physics-based reflections.
+                        </p>
+                      </div>
                     </div>
 
-                    {/* 模拟进度条 - 保持不动或移除动画 */}
+                    {/* Progress indicator */}
                     <div className="p-4 space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{t("generating")}</span>
-                        <span className="font-medium text-primary">100%</span>
+                      <div className="flex items-center justify-between text-[10px] lowercase tracking-[0.1em] text-white/50">
+                        <span>[ render complete ]</span>
+                        <span className="text-[#008fff]">verified</span>
                       </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full w-full" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 40)))" }} />
+                      <div className="h-0.5 bg-white/10 overflow-hidden">
+                        <div className="h-full w-full bg-[#008fff]/60" />
                       </div>
-                      <p className="text-xs text-muted-foreground text-center">
-                        {t("readyIn")} 2-5 {t("minutes")}
+                      <p className="text-[9px] text-white/20 text-center tracking-[0.2em] lowercase">
+                        seedance 2.0 native output
                       </p>
                     </div>
                   </div>
                 </motion.div>
+
               </div>
             </motion.div>
           </BlurFade>

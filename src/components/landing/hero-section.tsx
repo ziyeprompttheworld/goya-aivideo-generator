@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Zap, Play } from "lucide-react";
-import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -13,9 +11,7 @@ import {
   DEFAULT_CONFIG,
   DEFAULT_DEFAULTS,
 } from "@/components/video-generator";
-import { BlurFade } from "@/components/magicui/blur-fade";
-import { Meteors } from "@/components/magicui/meteors";
-import { cn } from "@/components/ui";
+import { SeascapeBackground2D } from "@/components/SeascapeBackground2D";
 import { authClient } from "@/lib/auth/client";
 import { calculateModelCredits, getAvailableModels } from "@/config/credits";
 import { NEW_USER_GIFT } from "@/config/pricing-user";
@@ -39,10 +35,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const PENDING_PROMPT_KEY = "videofly_pending_prompt";
-const PENDING_IMAGE_KEY = "videofly_pending_image";
-const NOTIFICATION_ASKED_KEY = "videofly_notification_asked";
-const TOOL_PREFILL_KEY = "videofly_tool_prefill";
+const PENDING_PROMPT_KEY = "goya_ai_pending_prompt";
+const PENDING_IMAGE_KEY = "goya_ai_pending_image";
+const NOTIFICATION_ASKED_KEY = "goya_ai_notification_asked";
+const TOOL_PREFILL_KEY = "goya_ai_tool_prefill";
 
 function normalizeGeneratorMode(mode?: string): GenerationMode {
   if (mode === "image-to-video" || mode === "i2v") {
@@ -82,14 +78,18 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
 
   const generatorConfig = useMemo(() => {
     const availableModels = getAvailableModels({
-      provider: currentProvider,
+      enabledOnly: true,
     });
     const availableIds = new Set(availableModels.map((model) => model.id));
+    
+    // Create a mapping of modelId -> primary provider
     const providerByModel = new Map(
-      availableModels.map((model) => [model.id, currentProvider || model.provider])
+      availableModels.map((model) => [model.id, model.provider])
     );
+
     const videoModels = DEFAULT_CONFIG.videoModels ?? [];
     const filteredVideoModels = videoModels.filter((model) => availableIds.has(model.id));
+
     const filteredVideoModes = (DEFAULT_CONFIG.videoModes ?? [])
       .map((mode) => {
         const normalizedMode = normalizeGeneratorMode(mode.id);
@@ -141,21 +141,42 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
     outputNumber: number;
     duration?: string;
     resolution?: string;
+    hasVideoInput?: boolean;
+    inputVideoDuration?: number;
   }) => {
     if (params.type !== "video") return 0;
     const parsedDuration = parseDuration(params.duration) ?? defaultDuration;
     const baseCredits = calculateModelCredits(params.model, {
       duration: parsedDuration,
       quality: params.resolution,
+      hasVideoInput: params.hasVideoInput,
+      inputVideoDuration: params.inputVideoDuration,
+      outputNumber: params.outputNumber,
     });
-    return baseCredits * params.outputNumber;
-  }, [defaultDuration, parseDuration]);
+    return baseCredits; // calculateModelCredits already multiplies by outputNumber in my previous edit
+  }, [defaultDuration]);
 
-  const resolveImageUrls = async (data: SubmitData) => {
-    if (data.images && data.images.length > 0) {
-      return Promise.all(data.images.map((file) => uploadImage(file)));
+  const resolveImagesBySlot = async (data: SubmitData) => {
+    if (!data.imageSlots || data.imageSlots.length === 0) {
+      if (data.images && data.images.length > 0) {
+        const urls = await Promise.all(data.images.map(f => uploadImage(f)));
+        return { default: urls[0], all: urls };
+      }
+      return null;
     }
-    return data.imageUrls;
+
+    const results = await Promise.all(
+      data.imageSlots.map(async (slot) => ({
+        slot: slot.slot,
+        url: await uploadImage(slot.file),
+      }))
+    );
+
+    const mapping: Record<string, any> = {};
+    results.forEach((r) => {
+      mapping[r.slot] = r.url;
+    });
+    return mapping;
   };
 
   const getToolRouteByMode = (mode: string) => {
@@ -171,55 +192,78 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
 
   const processSubmission = async (data: SubmitData) => {
     setIsSubmitting(true);
+    console.log("Starting submission with data:", data);
     try {
       const normalizedMode = normalizeGeneratorMode(data.mode);
-      const hasImages = (data.images && data.images.length > 0) || (data.imageUrls && data.imageUrls.length > 0);
-      const resolvedImageUrls = hasImages ? await resolveImageUrls(data) : undefined;
+      const imageMapping = await resolveImagesBySlot(data);
+      
+      const payload = {
+        prompt: data.prompt,
+        model: data.model,
+        mode: normalizedMode,
+        duration: parseDuration(data.duration),
+        aspectRatio: data.aspectRatio,
+        quality: data.quality ?? data.resolution,
+        outputNumber: data.outputNumber,
+        generateAudio: data.generateAudio,
+        // Common fields
+        imageUrl: imageMapping?.default || imageMapping?.start || data.imageUrl || (data.imageUrls?.[0]),
+        imageUrls: imageMapping?.all || data.imageUrls,
+        // Seedance 2.0 specialized multi-frame
+        firstFrameUrl: imageMapping?.start || (typeof data.firstFrameUrl === 'string' && !data.firstFrameUrl.startsWith('blob:') ? data.firstFrameUrl : undefined),
+        lastFrameUrl: imageMapping?.end || (typeof data.lastFrameUrl === 'string' && !data.lastFrameUrl.startsWith('blob:') ? data.lastFrameUrl : undefined),
+        referenceImageUrls: imageMapping 
+          ? Object.keys(imageMapping).filter(k => k.startsWith('ref')).map(k => imageMapping[k]) 
+          : (Array.isArray(data.referenceImageUrls) ? data.referenceImageUrls.filter(u => typeof u === 'string' && !u.startsWith('blob:')) : undefined),
+      };
+      
+      console.log("Sending API request with payload:", payload);
+      
       const response = await fetch("/api/v1/video/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: data.prompt,
-          model: data.model,
-          mode: normalizedMode,
-          duration: parseDuration(data.duration),
-          aspectRatio: data.aspectRatio,
-          quality: data.quality ?? data.resolution,
-          outputNumber: data.outputNumber,
-          generateAudio: data.generateAudio,
-          imageUrls: resolvedImageUrls,
-          imageUrl: resolvedImageUrls?.[0],
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: `HTTP Error ${response.status}` };
+        }
+        console.error("API error details:", errorData);
         throw new Error(
-          error?.error?.message || error?.message || "Failed to generate video"
+          errorData?.error?.message || errorData?.message || "Failed to generate video"
         );
       }
 
       const result = await response.json();
+      console.log("API success result:", result);
+      
+      // Calculate route and navigate immediately for better UX
       const toolRoute = getToolRouteByMode(normalizedMode);
-      toast.success("Generation started");
+      const targetUrl = `/${locale}/${toolRoute}?id=${result.data.videoUuid}`;
+      
+      // Navigate immediately while finishing background tasks
+      router.push(targetUrl);
+      toast.success("Generation started!");
+      
+      // Continue background storage in parallel
       try {
         if (typeof window !== "undefined") {
           sessionStorage.setItem(
             TOOL_PREFILL_KEY,
             JSON.stringify({
-              prompt: data.prompt,
-              model: data.model,
-              mode: normalizedMode,
-              duration: parseDuration(data.duration),
-              aspectRatio: data.aspectRatio,
-              quality: data.quality ?? data.resolution,
-              imageUrl: resolvedImageUrls?.[0],
+              ...payload,
+              videoUuid: result.data.videoUuid
             })
           );
         }
       } catch (storageError) {
         console.warn("Failed to store tool prefill data:", storageError);
       }
+      
       if (session?.user?.id) {
         videoTaskStorage.addTask({
           userId: session.user.id,
@@ -233,24 +277,15 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
           notified: false,
         });
       }
-      router.push(`/${locale}/${toolRoute}?id=${result.data.videoUuid}`);
     } catch (error) {
-      console.error("Generation error:", error);
+      console.error("Submission failed:", error);
       const message = error instanceof Error ? error.message : "Failed to generate video. Please try again.";
-      // Check for common errors and provide helpful messages
-      if (message.includes("credits") || message.includes("Credit")) {
-        toast.error("Insufficient credits. Please top up and try again.");
-      } else if (message.includes("database") || message.includes("DATABASE_URL")) {
-        toast.error("Service temporarily unavailable. Please try again later.");
-      } else {
-        toast.error(message || "Failed to generate video. Please try again.");
-      }
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
       setPendingSubmitData(null);
     }
   };
-
   const handleAllowNotify = () => {
     setShowNotifyDialog(false);
     Notification.requestPermission().then(() => {
@@ -310,84 +345,117 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
     processSubmission(data);
   };
 
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
+
+  // Parallax: canvas scrolls at ×0.15 scroll speed (passive)
+  useEffect(() => {
+    const el = canvasWrapRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      el.style.transform = `translateY(${window.scrollY * 0.15}px)`;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <section id="generator" className="relative min-h-screen overflow-hidden pb-20">
-      {/* 动画流星效果 */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <Meteors number={15} minDelay={0.5} maxDelay={2} minDuration={3} maxDuration={8} />
+    <>
+      {/* Hero canvas */}
+      <div className="mono-cursor-zone relative w-full overflow-hidden z-10" style={{ height: "420px" }}>
+        {/* Parallax canvas layer ×0.15 */}
+        <div ref={canvasWrapRef} className="absolute inset-0 will-change-transform">
+          <SeascapeBackground2D contained />
+        </div>
+
+        {/* Text overlay — azumbrunnen fadeInUp, staggered, IBM Plex Mono */}
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none font-plex-mono"
+          style={{ padding: "36px 40px" }}
+        >
+          <div className="pointer-events-auto text-center">
+            {/* Eyebrow — opacity 0.54 (azumbrunnen nav/muted default) */}
+            <div
+              className="text-[11px] font-light tracking-[0.22em] mb-5 lowercase"
+              style={{
+                color: "rgba(255,255,255,0.54)",
+                animation: "monoFadeInUp 0.8s cubic-bezier(0.23,1,0.32,1) both",
+                animationDelay: "0s",
+              }}
+            >
+              {t("badge")}
+            </div>
+            {/* Headline — azumbrunnen h1: weight 400, line-height 1.15 */}
+            <div
+              className="text-[56px] md:text-[72px] font-light text-white whitespace-nowrap"
+              style={{
+                lineHeight: 1.15,
+                marginBottom: "16px",
+                textShadow: "0 2px 40px rgba(0,0,0,0.8)",
+                animation: "monoFadeInUp 0.8s cubic-bezier(0.23,1,0.32,1) both",
+                animationDelay: "0.15s",
+              }}
+            >
+              make <span style={{ color: "#008fff", animation: "hueRotate 10s ease infinite", display: "inline-block" }}>moving</span> films.
+            </div>
+            {/* Subhead — opacity 0.80 (azumbrunnen intro text) */}
+            <div
+              className="text-[18px] font-light lowercase"
+              style={{
+                letterSpacing: "0.04em",
+                lineHeight: 1.65,
+                color: "rgba(255,255,255,0.80)",
+                textShadow: "0 1px 20px rgba(0,0,0,0.6)",
+                animation: "monoFadeInUp 0.8s cubic-bezier(0.23,1,0.32,1) both",
+                animationDelay: "0.30s",
+              }}
+            >
+              type a prompt. receive a film.
+            </div>
+            {/* CTA — azumbrunnen pill ghost button: scale(1.015) hover, push active */}
+            <button
+              onClick={() => {
+                document.getElementById('generator')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="mt-7 inline-block border border-white/35 rounded-full px-7 py-3 text-[11px] tracking-[0.12em] lowercase"
+              style={{
+                color: "rgba(255,255,255,0.80)",
+                transition: "transform 0.15s ease, border-color 0.15s",
+                animation: "monoFadeInUp 0.8s cubic-bezier(0.23,1,0.32,1) both",
+                animationDelay: "0.45s",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.015)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#008fff";
+                (e.currentTarget as HTMLButtonElement).style.color = "#008fff";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.35)";
+                (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.80)";
+              }}
+              onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.animation = "push 0.5s ease-out"; }}
+              onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.animation = ""; }}
+            >
+              → start creating
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="flex flex-col items-center gap-10">
-          {/* 标题与说明区域 */}
-          <motion.div
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-center space-y-6 max-w-3xl mx-auto"
+      {/* Generator Section — floats up over the wave canvas */}
+      <section id="generator" className="relative z-10 font-plex-mono" style={{ marginTop: "-80px", paddingTop: "0", paddingBottom: "80px", background: "linear-gradient(to bottom, transparent 0%, transparent 60px, #000 140px)" }}>
+        <div className="container mx-auto px-4" style={{ paddingTop: "40px" }}>
+          <div
+            className="w-full max-w-4xl mx-auto border border-white/8 bg-white/[0.03] p-8 backdrop-blur-sm"
+            style={{
+              animation: "monoFadeInUp 0.9s cubic-bezier(0.23,1,0.32,1) both",
+              animationDelay: "0.45s",
+              boxShadow: "0 0 60px rgba(0,143,255,0.06), 0 0 120px rgba(0,143,255,0.03), inset 0 1px 0 rgba(255,255,255,0.04)",
+            }}
           >
-            {/* Badge */}
-            <BlurFade delay={0.05} inView>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">
-                  {t("badge")}
-                </span>
-              </div>
-            </BlurFade>
-
-            {/* 主标题 */}
-            <BlurFade delay={0.1} inView>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                {t("title")}
-              </h1>
-            </BlurFade>
-
-            {/* 描述 */}
-            <BlurFade delay={0.2} inView>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                {t("description")}
-              </p>
-            </BlurFade>
-
-            {/* 特性标签 */}
-            <BlurFade delay={0.3} inView className="flex flex-wrap justify-center gap-3">
-              {[
-                { icon: Zap, label: t("features.fast"), color: "text-yellow-500" },
-                { icon: Play, label: t("features.easy"), color: "text-primary" },
-                { icon: Sparkles, label: t("features.ai"), color: "text-primary" },
-              ].map((feature, idx) => {
-                const Icon = feature.icon;
-                return (
-                  <motion.div
-                    key={feature.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4 + idx * 0.1 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/60 dark:bg-white/10 backdrop-blur-sm border border-border/50"
-                  >
-                    <Icon className={cn("h-4 w-4", feature.color)} />
-                    <span className="text-sm font-medium">{feature.label}</span>
-                  </motion.div>
-                );
-              })}
-            </BlurFade>
-          </motion.div>
-
-          {/* 视频生成器 - 核心组件 */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="w-full max-w-4xl mx-auto relative"
-          >
-            {/* 装饰性光晕效果 */}
-            <div className="absolute -inset-4 rounded-3xl blur-3xl -z-10 opacity-30 dark:opacity-10" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--primary) l c h), oklch(from var(--primary) l c calc(h + 30)))" }} />
-
-            {/* 视频生成器 - 不需要外层容器，直接使用组件 */}
             {generatorConfig.videoModels.length > 0 ? (
               <VideoGeneratorInput
-                config={generatorConfig}
+                config={{ ...generatorConfig, promptTemplates: [] }}
                 defaults={generatorDefaults}
                 isLoading={isSubmitting}
                 disabled={isSubmitting}
@@ -395,39 +463,43 @@ export function HeroSection({ currentProvider }: HeroSectionProps) {
                 onSubmit={handleSubmit}
               />
             ) : (
-              <div className="rounded-3xl border border-border bg-card/80 p-8 text-center text-sm text-muted-foreground">
-                No enabled models are available for the current AI provider configuration.
+              <div className="border border-white/10 p-8 text-center text-[11px] text-white/50 lowercase tracking-[0.1em]">
+                no active models available.
               </div>
             )}
-
-            {NEW_USER_GIFT.enabled && NEW_USER_GIFT.credits > 0 && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="text-center text-xs text-muted-foreground mt-4"
-              >
-                {t("creditsHint", { credits: NEW_USER_GIFT.credits })}
-              </motion.p>
-            )}
-          </motion.div>
+          </div>
+          {/* Scroll hint — triggers user to explore showcase below */}
+          <div className="text-center mt-8">
+            <a
+              href="#showcase"
+              onClick={e => { e.preventDefault(); document.getElementById("showcase")?.scrollIntoView({ behavior: "smooth" }); }}
+              className="inline-block"
+            >
+              <div className="text-[22px] md:text-[28px] font-light text-white/60 lowercase tracking-tight hover:text-white/90 transition-colors font-plex-mono">
+                click an example to try.
+              </div>
+              <div className="text-[11px] text-white/25 tracking-[0.18em] lowercase font-plex-mono mt-1 hover:text-white/50 transition-colors">
+                real prompts. real results. ↓
+              </div>
+            </a>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <AlertDialog open={showNotifyDialog} onOpenChange={setShowNotifyDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{tNotify("enableNotifications")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {tNotify("notificationDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleSkipNotify}>{tNotify("maybeLater")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAllowNotify}>{tNotify("allow")}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </section>
+        <AlertDialog open={showNotifyDialog} onOpenChange={setShowNotifyDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{tNotify("enableNotifications")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {tNotify("notificationDescription")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleSkipNotify}>{tNotify("maybeLater")}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleAllowNotify}>{tNotify("allow")}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }

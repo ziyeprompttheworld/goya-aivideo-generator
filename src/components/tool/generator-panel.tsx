@@ -15,7 +15,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { cn } from "@/components/ui";
 import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator";
 import { getAvailableModels, calculateModelCredits } from "@/config/credits";
-import { ChevronDown, X, Sparkles, Image as ImageIcon, Clock, Check } from "lucide-react";
+import { ChevronDown, X, Image as ImageIcon, Clock, Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,9 +37,9 @@ interface SectionLabelProps {
 
 function SectionLabel({ children, required, className }: SectionLabelProps) {
   return (
-    <div className={cn("text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2 block", className)}>
+    <div className={cn("text-[9px] text-white/30 font-light uppercase tracking-[0.22em] mb-2 block font-plex-mono", className)}>
       {children}
-      {required && <span className="text-destructive ml-1">*</span>}
+      {required && <span className="text-red-400 ml-1">*</span>}
     </div>
   );
 }
@@ -279,22 +279,21 @@ export function GeneratorPanel({
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Main Card - Pollo.ai Style */}
-      <div className="flex-1 flex flex-col rounded-xl bg-card border border-border overflow-hidden text-foreground">
+    <div className="h-full flex flex-col font-plex-mono">
+      {/* Main Card */}
+      <div className="flex-1 flex flex-col bg-black border border-white/8 overflow-hidden text-white">
         {/* Header Bar */}
-        <div className="px-5 py-3 bg-muted/40 border-b border-border shrink-0">
-          <h2 className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
-            {getPageTitle()}
+        <div className="px-5 py-3 border-b border-white/8 shrink-0">
+          <h2 className="text-[9px] text-white/30 font-light uppercase tracking-[0.22em]">
+            {getPageTitle().toLowerCase()}
           </h2>
         </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
           {!hasAvailableModels && (
-            <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              No models are currently available for this tool under the active AI
-              provider configuration.
+            <div className="border border-white/8 p-4 text-[11px] text-white/30 lowercase tracking-[0.08em]">
+              no models available for this tool.
             </div>
           )}
 
@@ -302,53 +301,53 @@ export function GeneratorPanel({
             <>
           {/* Model Selection */}
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-              MODEL
+            <span className="text-[9px] text-white/30 font-light uppercase tracking-[0.22em]">
+              model
             </span>
             {currentModel && (
                 <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
                 <DropdownMenuTrigger asChild disabled={isLoading}>
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white"
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-[11px] text-white/70 hover:text-white lowercase tracking-[0.08em]"
                   >
                     {renderModelIcon(currentModel.id, currentModel.name, "sm")}
                     <span>{currentModel.name}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                    <ChevronDown className="w-3 h-3 text-white/30" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-zinc-900 border-zinc-800 w-80 max-h-[400px] overflow-y-scroll custom-scrollbar">
-                  <DropdownMenuLabel className="text-zinc-400 text-xs">
-                    Video Models
+                <DropdownMenuContent className="bg-black border-white/10 w-72 max-h-[400px] overflow-y-scroll custom-scrollbar font-plex-mono">
+                  <DropdownMenuLabel className="text-[9px] text-white/25 uppercase tracking-[0.2em] font-light">
+                    video models
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <DropdownMenuSeparator className="bg-white/8" />
                   {availableModels.map((model) => (
                     <DropdownMenuItem
                       key={model.id}
                       data-model-id={model.id}
                       onClick={() => setSelectedModel(model.id)}
-                      className="text-white hover:bg-zinc-800 flex flex-col items-start py-3"
+                      className="text-white/60 hover:text-white hover:bg-white/[0.04] flex flex-col items-start py-3"
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
                           {renderModelIcon(model.id, model.name, "md")}
-                          <span className="font-medium">{model.name}</span>
+                          <span className="text-[11px] tracking-[0.06em]">{model.name}</span>
                         </div>
                         {selectedModel === model.id && (
-                          <Check className="w-4 h-4 text-green-500" />
+                          <Check className="w-3 h-3 text-[#008fff]" />
                         )}
                       </div>
                       {model.description && (
-                        <div className="text-xs text-zinc-500 mt-1 ml-8">{model.description}</div>
+                        <div className="text-[10px] text-white/25 mt-1 ml-8 tracking-[0.04em]">{model.description}</div>
                       )}
-                      <div className="text-xs text-zinc-400 mt-1 ml-8 flex items-center gap-2">
+                      <div className="text-[10px] text-white/25 mt-1 ml-8 flex items-center gap-2">
                         {model.maxDuration && (
                           <>
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {model.maxDuration}
                             </span>
-                            <span>•</span>
+                            <span>·</span>
                           </>
                         )}
                         <span>{model.creditCost?.base ?? ""} credits</span>
@@ -363,37 +362,33 @@ export function GeneratorPanel({
           {/* Prompt Section */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <SectionLabel className="mb-0">PROMPT</SectionLabel>
+              <SectionLabel className="mb-0">prompt</SectionLabel>
             </div>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the video you want to create, e.g., A cat playing in a sunny garden with natural lighting and fresh atmosphere..."
+              placeholder="describe the video you want to create..."
               disabled={isLoading}
-              className="w-full min-h-[100px] max-h-[200px] px-4 py-3 rounded-lg bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:border-primary transition-colors text-sm leading-relaxed"
+              className="w-full min-h-[100px] max-h-[200px] px-4 py-3 bg-white/[0.02] border border-white/8 text-white/80 placeholder:text-white/20 resize-none focus:outline-none focus:border-white/20 transition-colors text-[12px] leading-relaxed tracking-[0.04em] font-plex-mono"
               rows={4}
               maxLength={2000}
             />
           </div>
 
-          {/* Image Upload (for image-to-video) */}
+          {/* Image Upload */}
           {(toolType === "image-to-video" || toolType === "reference-to-video") &&
             currentModel?.supportImageToVideo && (
               <div>
                 <SectionLabel required={toolType === "image-to-video"}>
-                  {toolType === "reference-to-video" ? "REFERENCE IMAGE" : "IMAGE SOURCE"}
+                  {toolType === "reference-to-video" ? "reference image" : "image source"}
                 </SectionLabel>
                 {imageFile || imageUrl ? (
-                  <div className="relative group h-32 rounded-lg overflow-hidden border-2 border-zinc-700">
+                  <div className="relative group h-32 overflow-hidden border border-white/10">
                     {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt="Selected"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={imageUrl} alt="Selected" className="w-full h-full object-cover" />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center p-3">
-                        <span className="text-xs font-medium truncate bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
+                        <span className="text-[10px] text-white/50 truncate bg-black/80 px-3 py-1.5 border border-white/10">
                           {imageFile?.name}
                         </span>
                       </div>
@@ -401,38 +396,29 @@ export function GeneratorPanel({
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/80 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 p-1.5 bg-black/80 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <X className="w-3.5 h-3.5 text-foreground" />
+                      <X className="w-3 h-3 text-white/60" />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors group">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-muted/60 group-hover:bg-muted transition-colors">
-                      <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-3">Upload image</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">JPG, PNG, WEBP • Max 10MB</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                      disabled={isLoading}
-                    />
+                  <label className="flex flex-col items-center justify-center w-full h-32 border border-dashed border-white/10 hover:border-white/25 transition-colors group">
+                    <ImageIcon className="w-5 h-5 text-white/20 group-hover:text-white/40 transition-colors" />
+                    <p className="text-[11px] text-white/30 mt-2 lowercase tracking-[0.08em]">upload image</p>
+                    <p className="text-[10px] text-white/15 mt-1 lowercase">jpg, png, webp · max 10mb</p>
+                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" disabled={isLoading} />
                   </label>
                 )}
               </div>
             )}
-
 
           {/* Settings Group */}
           <div className="space-y-5">
             {/* Aspect Ratio */}
             {currentModel?.aspectRatios && (
               <div>
-                <SectionLabel>ASPECT RATIO</SectionLabel>
-                <div className="grid grid-cols-3 gap-3">
+                <SectionLabel>aspect ratio</SectionLabel>
+                <div className="grid grid-cols-3 gap-2">
                   {currentModel.aspectRatios.map((ar) => (
                     <button
                       key={ar}
@@ -440,16 +426,16 @@ export function GeneratorPanel({
                       onClick={() => setAspectRatio(ar)}
                       disabled={isLoading}
                       className={cn(
-                        "aspect-square w-full rounded-lg text-xs font-medium transition-all border flex items-center justify-center",
+                        "aspect-square w-full text-[10px] font-light transition-all border flex items-center justify-center tracking-[0.06em]",
                         aspectRatio === ar
-                          ? "bg-primary/10 text-foreground border-primary"
-                          : "bg-muted/40 text-muted-foreground border-border hover:border-muted-foreground/40"
+                          ? "border-[#008fff]/60 text-white bg-[#008fff]/5"
+                          : "border-white/8 text-white/30 bg-white/[0.02] hover:border-white/20 hover:text-white/60"
                       )}
                     >
                       <div className="flex flex-col items-center gap-2">
                         <div className={cn(
-                          "border-2 rounded-sm",
-                          aspectRatio === ar ? "border-primary" : "border-muted-foreground/50",
+                          "border",
+                          aspectRatio === ar ? "border-[#008fff]/60" : "border-white/20",
                           ar === "16:9" && "w-8 h-4",
                           ar === "9:16" && "w-4 h-8",
                           ar === "1:1" && "w-6 h-6",
@@ -468,8 +454,8 @@ export function GeneratorPanel({
             <div className="grid grid-cols-2 gap-4">
               {currentModel?.durations && (
                 <div>
-                  <SectionLabel>VIDEO LENGTH</SectionLabel>
-                  <div className="grid grid-cols-3 gap-2">
+                  <SectionLabel>length</SectionLabel>
+                  <div className="grid grid-cols-3 gap-1.5">
                     {currentModel.durations.map((d) => (
                       <button
                         key={d}
@@ -477,10 +463,10 @@ export function GeneratorPanel({
                         onClick={() => setDuration(d)}
                         disabled={isLoading}
                         className={cn(
-                          "h-10 rounded-lg text-sm font-medium transition-all",
+                          "h-9 text-[11px] font-light transition-all border tracking-[0.06em]",
                           duration === d
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
+                            ? "border-[#008fff]/60 text-white bg-[#008fff]/5"
+                            : "border-white/8 text-white/30 bg-white/[0.02] hover:border-white/20 hover:text-white/60"
                         )}
                       >
                         {d}s
@@ -492,8 +478,8 @@ export function GeneratorPanel({
 
               {currentModel?.qualities && (
                 <div>
-                  <SectionLabel>RESOLUTION</SectionLabel>
-                  <div className="grid grid-cols-3 gap-2">
+                  <SectionLabel>resolution</SectionLabel>
+                  <div className="grid grid-cols-3 gap-1.5">
                     {currentModel.qualities.map((q) => (
                       <button
                         key={q}
@@ -501,10 +487,10 @@ export function GeneratorPanel({
                         onClick={() => setQuality(q)}
                         disabled={isLoading}
                         className={cn(
-                          "h-10 rounded-lg text-sm font-medium transition-all capitalize",
+                          "h-9 text-[11px] font-light transition-all border lowercase tracking-[0.04em]",
                           quality === q
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
+                            ? "border-[#008fff]/60 text-white bg-[#008fff]/5"
+                            : "border-white/8 text-white/30 bg-white/[0.02] hover:border-white/20 hover:text-white/60"
                         )}
                       >
                         {q}
@@ -519,15 +505,12 @@ export function GeneratorPanel({
           )}
         </div>
 
-        {/* Bottom Section - Credits + Generate Button */}
-        <div className="px-5 py-4 bg-muted/40 border-t border-border space-y-4 shrink-0">
+        {/* Bottom Section */}
+        <div className="px-5 py-4 border-t border-white/8 space-y-4 shrink-0 bg-white/[0.01]">
           {/* Credits Display */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total Credits:</span>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-              <span className="text-foreground font-medium">{estimatedCredits} Credits</span>
-            </div>
+            <span className="text-[9px] text-white/25 uppercase tracking-[0.22em]">estimated credits</span>
+            <span className="text-[12px] text-white/60 tracking-[0.06em]">{estimatedCredits}</span>
           </div>
 
           {/* Generate Button */}
@@ -536,22 +519,19 @@ export function GeneratorPanel({
             onClick={handleSubmit}
             disabled={!canSubmit}
             className={cn(
-              "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
+              "w-full flex items-center justify-center gap-2 px-4 py-3 text-[11px] font-light tracking-[0.18em] lowercase transition-all border",
               canSubmit
-                ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
+                ? "border-white/20 text-white/80 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30"
+                : "border-white/5 text-white/20 bg-transparent"
             )}
           >
             {isLoading ? (
               <>
-                <div className="w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" />
-                Generating...
+                <div className="w-3 h-3 border border-white/20 border-t-white/60 rounded-full" style={{ animation: "spin 1s linear infinite" }} />
+                generating...
               </>
             ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                Generate Video
-              </>
+              "→ generate video"
             )}
           </button>
         </div>

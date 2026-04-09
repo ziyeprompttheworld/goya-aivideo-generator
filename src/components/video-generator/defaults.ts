@@ -41,9 +41,6 @@ import type {
 // ============================================================================
 
 export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
-  // ============================================================================
-  // Seedance Series (Primary - APImart)
-  // ============================================================================
   {
     id: "seedance-1.5-pro",
     name: "Seedance 1.5 Pro",
@@ -51,98 +48,12 @@ export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
     color: "#10b981",
     description: "Text/Image/Frames to video with audio",
     maxDuration: "12 sec",
-    creditCost: 16, // 最小 4s 720p 有音频 = 16 积分 (4秒 × 4积分/秒)
-    durations: ["4s", "5s", "6s", "7s", "8s", "9s", "10s", "11s", "12s"],
+    creditCost: 16,
+    durations: ["4s", "8s", "12s"],
     aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
     resolutions: ["480P", "720P", "1080P"],
     maxImages: 2,
-    imageConstraints: {
-      maxSizeMB: 10,
-      formats: ["jpg", "jpeg", "png", "webp"],
-    },
     supportsAudio: true,
-  },
-  {
-    id: "seedance-1.0-pro-fast",
-    name: "Seedance 1.0 Fast",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1754894158793-1e7ef687-c3c1-4f44-8b06-d044a8121f66.svg",
-    color: "#34d399",
-    description: "Fast video generation, lower cost",
-    maxDuration: "12 sec",
-    creditCost: 15, // 5s 720p = 5×3 = 15
-    durations: ["2s", "4s", "5s", "6s", "8s", "10s", "12s"],
-    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
-    resolutions: ["480P", "720P", "1080P"],
-    maxImages: 1,
-    imageConstraints: {
-      maxSizeMB: 10,
-      formats: ["jpg", "jpeg", "png", "webp"],
-    },
-  },
-  {
-    id: "seedance-1.0-pro-quality",
-    name: "Seedance 1.0 Quality",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1754894158793-1e7ef687-c3c1-4f44-8b06-d044a8121f66.svg",
-    color: "#059669",
-    description: "Highest quality video generation",
-    maxDuration: "12 sec",
-    creditCost: 25, // 5s 720p = 5×5 = 25
-    durations: ["2s", "4s", "5s", "6s", "8s", "10s", "12s"],
-    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
-    resolutions: ["480P", "720P", "1080P"],
-    maxImages: 1,
-    imageConstraints: {
-      maxSizeMB: 10,
-      formats: ["jpg", "jpeg", "png", "webp"],
-    },
-  },
-
-  // ============================================================================
-  // Hidden Models (kept for reference, filtered out by enabled: false in pricing)
-  // ============================================================================
-  {
-    id: "sora-2",
-    name: "Sora 2",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/test/cm3pol28q0000ojuuyeo77e36/image/1759998830447-10c6484e-786d-4d05-a2c4-f0c929b1042b.svg",
-    color: "#000000",
-    description: "OpenAI's advanced video generation model",
-    maxDuration: "15 sec",
-    creditCost: 2,
-    durations: ["10s", "15s"],
-    aspectRatios: ["16:9", "9:16"],
-    maxImages: 1,
-  },
-  {
-    id: "wan2.6",
-    name: "Wan 2.6",
-    icon: "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
-    color: "#ff6a00",
-    description: "Text/Image/Reference video to video with audio support",
-    maxDuration: "10 sec",
-    creditCost: 25,
-    durations: ["5s", "10s"],
-    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
-    resolutions: ["720P", "1080P"],
-    maxImages: 1,
-    supportsAudio: true,
-  },
-  {
-    id: "veo-3.1",
-    name: "Veo 3.1",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1753259785486-de7c53b0-9576-4d3e-a76a-a94fcac57bf1.svg",
-    color: "#4285f4",
-    description: "Google's video generation with reference support",
-    maxDuration: "8 sec",
-    creditCost: 10,
-    durations: ["8s"],
-    aspectRatios: ["16:9", "9:16"],
-    maxImages: 2,
-    outputNumbers: [
-      { value: 1 },
-      { value: 2, isPro: true },
-      { value: 3, isPro: true },
-      { value: 4, isPro: true },
-    ],
   },
 ];
 
@@ -163,15 +74,8 @@ export const DEFAULT_VIDEO_MODES: GeneratorMode[] = [
     icon: "text",
     uploadType: "single",
     description: "Generate video from text prompt with optional reference image",
-    // Supports T2V and I2V (upload image for I2V mode)
-    // Sora, Wan, Veo, Seedance
     supportedModels: [
       "seedance-1.5-pro",
-      "seedance-1.0-pro-fast",
-      "seedance-1.0-pro-quality",
-      "sora-2",
-      "wan2.6",
-      "veo-3.1",
     ],
   },
   {
@@ -180,22 +84,8 @@ export const DEFAULT_VIDEO_MODES: GeneratorMode[] = [
     icon: "frames",
     uploadType: "start-end",
     description: "Generate video from start and end frame images",
-    // Seedance first-last-frame mode
     supportedModels: ["seedance-1.5-pro"],
-    aspectRatios: ["16:9", "9:16"],
-  },
-  {
-    id: "reference-to-video",
-    name: "Reference to Video",
-    icon: "reference",
-    uploadType: "characters",
-    description: "Generate video using character reference images or videos",
-    // Seedance reference mode
-    supportedModels: ["seedance-1.5-pro"],
-    // REFERENCE mode only supports 16:9 (Veo), Wan has more options but switches dynamically
-    aspectRatios: ["16:9"],
-    // REFERENCE mode fixed 8s (Veo)
-    durations: ["8s"],
+    aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
   },
 ];
 
@@ -232,12 +122,7 @@ export const DEFAULT_IMAGE_ASPECT_RATIOS = ["1:1", "16:9", "3:2", "2:3", "3:4", 
 // Video Options
 // ============================================================================
 
-// Different models support different durations - common options listed here
-// sora-2: 10s, 15s
-// wan2.6: 5s, 10s
-// veo-3.1: 8s
-// seedance-1.5-pro: 4s-12s
-export const DEFAULT_DURATIONS = ["4s", "5s", "6s", "8s", "10s", "12s", "15s"];
+export const DEFAULT_DURATIONS = ["4s", "5s", "8s", "10s", "12s", "15s"];
 export const DEFAULT_RESOLUTIONS: string[] = [];
 
 // ============================================================================
@@ -329,15 +214,15 @@ export const DEFAULT_DEFAULTS: GeneratorDefaults = {
   generationType: "video",
   videoModel: "seedance-1.5-pro",
   imageModel: "flux-pro",
+  imageStyle: "photorealistic",
   videoMode: "text-image-to-video",
   imageMode: "text-to-image",
   videoAspectRatio: "16:9",
   imageAspectRatio: "1:1",
-  duration: "5s",        // seedance default
+  duration: "4s",        // 1.5 pro default
   resolution: "720P",    // default for models with resolution support
   videoOutputNumber: 1,
   imageOutputNumber: 1,
-  imageStyle: "auto",
 };
 
 /**

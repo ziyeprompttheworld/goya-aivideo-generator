@@ -46,6 +46,7 @@ export interface ModelMapping {
     evolink?: ProviderModelConfig;
     kie?: ProviderModelConfig;
     apimart?: ProviderModelConfig;
+    volcengine?: ProviderModelConfig;
   };
 }
 
@@ -187,7 +188,7 @@ function kieParamsTransformer(
 
   // Transform common parameters
   if (params.aspectRatio) {
-    if (internalModelId === "veo-3.1") {
+    if (internalModelId === "veo-3.1" || internalModelId.startsWith("seedance")) {
       baseInput.aspect_ratio = params.aspectRatio;
     } else {
       baseInput.aspect_ratio = transformAspectRatio(params.aspectRatio, "kie");
@@ -252,6 +253,51 @@ function kieParamsTransformer(
       normalizeQuality(params.quality, "kie", internalModelId) || "720p";
     baseInput.fixed_lens = params.fixedLens ?? true;
     baseInput.generate_audio = params.generateAudio ?? false;
+
+    const seedance15RefUrls: string[] = [];
+    if (params.firstFrameUrl) seedance15RefUrls.push(params.firstFrameUrl);
+    if (Array.isArray(params.referenceImageUrls)) {
+      seedance15RefUrls.push(...params.referenceImageUrls);
+    }
+    if (params.lastFrameUrl) seedance15RefUrls.push(params.lastFrameUrl);
+    
+    // Fallback to generic imageUrls (which were mapped to input_urls earlier but will be overridden)
+    if (seedance15RefUrls.length === 0 && Array.isArray(imageUrls)) {
+      seedance15RefUrls.push(...imageUrls);
+    }
+
+    if (seedance15RefUrls.length > 0) {
+      baseInput.input_urls = seedance15RefUrls.slice(0, 2); // API allows strictly 0-2 items
+    }
+  }
+
+  // Seedance 2.0 specific parameters (New)
+  if (internalModelId === "seedance-2.0") {
+    baseInput.resolution =
+      normalizeQuality(params.quality, "kie", internalModelId) || "720p";
+    baseInput.generate_audio = params.generateAudio ?? true;
+    baseInput.duration = params.duration || 15;
+    
+    const seedanceRefUrls: string[] = [];
+    if (params.firstFrameUrl) seedanceRefUrls.push(params.firstFrameUrl);
+    if (Array.isArray(params.referenceImageUrls)) {
+      seedanceRefUrls.push(...params.referenceImageUrls);
+    }
+    if (params.lastFrameUrl) seedanceRefUrls.push(params.lastFrameUrl);
+    
+    // Fallback to generic imageUrls if specific slots aren't used
+    if (seedanceRefUrls.length === 0 && imageUrls && imageUrls.length > 0) {
+      seedanceRefUrls.push(...imageUrls);
+    }
+
+    if (seedanceRefUrls.length > 0) {
+      baseInput.reference_image_urls = seedanceRefUrls;
+    }
+
+    // Handle video references if provided in params
+    if (params.videoUrls && params.videoUrls.length > 0) {
+      baseInput.reference_video_urls = params.videoUrls;
+    }
   }
 
   return {
@@ -447,6 +493,10 @@ export const MODEL_MAPPINGS: Record<string, ModelMapping> = {
         supported: true,
         transformParams: apimartParamsTransformer,
       },
+      volcengine: {
+        providerModelId: "doubao-seedance-1-5-pro-260128",
+        supported: true,
+      },
     },
   },
 
@@ -479,6 +529,44 @@ export const MODEL_MAPPINGS: Record<string, ModelMapping> = {
       },
     },
   },
+  // -------------------------------------------------------------------------
+  // Seedance 2.0 (New)
+  // -------------------------------------------------------------------------
+  "seedance-2.0": {
+    internalId: "seedance-2.0",
+    displayName: "Seedance 2.0",
+    providers: {
+      evolink: {
+        providerModelId: "seedance-2.0",
+        supported: true,
+        transformParams: evolinkParamsTransformer,
+      },
+      kie: {
+        providerModelId: "bytedance/seedance-2",
+        supported: true,
+        transformParams: kieParamsTransformer,
+      },
+      apimart: {
+        providerModelId: "doubao-seedance-2-0",
+        supported: true,
+        transformParams: apimartParamsTransformer,
+      },
+      volcengine: {
+        providerModelId: "doubao-seedance-2-0-260128",
+        supported: true,
+      },
+    },
+  },
+  "seedance-2.0-cn": {
+    internalId: "seedance-2.0-cn",
+    displayName: "Seedance 2.0 CN",
+    providers: {
+      volcengine: {
+        providerModelId: "doubao-seedance-2-0-260128",
+        supported: true,
+      },
+    },
+  },
 };
 
 const MODEL_MODE_SUPPORT: Record<
@@ -503,15 +591,24 @@ const MODEL_MODE_SUPPORT: Record<
     ],
   },
   "seedance-1.5-pro": {
-    evolink: ["text-to-video", "image-to-video"],
-    kie: ["text-to-video", "image-to-video"],
-    apimart: ["text-to-video", "image-to-video"],
+    evolink: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
+    kie: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
+    apimart: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
   },
   "seedance-1.0-pro-fast": {
     apimart: ["text-to-video", "image-to-video"],
   },
   "seedance-1.0-pro-quality": {
     apimart: ["text-to-video", "image-to-video"],
+  },
+  "seedance-2.0": {
+    evolink: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
+    kie: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
+    apimart: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
+    volcengine: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
+  },
+  "seedance-2.0-cn": {
+    volcengine: ["text-to-video", "image-to-video", "reference-to-video", "frames-to-video"],
   },
 };
 

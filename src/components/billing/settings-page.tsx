@@ -4,13 +4,12 @@
 // Settings Page (Billing Only)
 // ============================================
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Mail, IdCard, Calendar } from "lucide-react";
 import { useBilling } from "@/hooks/use-billing";
 import { AvatarFallback } from "@/components/user/avatar-fallback";
 import { BillingList } from "@/components/billing";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 
 interface SettingsPageProps {
@@ -61,62 +60,48 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
   const joinedDate = user?.createdAt ? new Date(user.createdAt) : null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-plex-mono">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      <div className="border-b border-white/8 pb-6">
+        <h1 className="text-[22px] font-light text-white/80 lowercase tracking-tight">{t("title")}</h1>
       </div>
 
-      {/* Account Info Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-6">
-            {/* Avatar */}
-            <AvatarFallback
-              name={displayEmail}
-              email={displayEmail}
-              className="h-16 w-16 text-xl"
-            />
-
-            {/* Info */}
-            <div className="flex-1 space-y-4">
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">{t("account")}</div>
-                <h2 className="text-lg font-semibold">{t("account")}</h2>
+      {/* Account Info */}
+      <div className="border border-white/8 bg-white/[0.02] p-6">
+        <div className="flex items-start gap-6">
+          <AvatarFallback
+            name={displayEmail}
+            email={displayEmail}
+            className="h-14 w-14 text-lg"
+          />
+          <div className="flex-1 space-y-4">
+            <div className="text-[9px] text-white/25 uppercase tracking-[0.22em]">{t("account")}</div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Mail className="h-3.5 w-3.5 text-white/20" />
+                <span className="text-[10px] text-white/30 tracking-[0.08em] lowercase">{t("email")}:</span>
+                <span className="text-[11px] text-white/60 tracking-[0.04em]">{displayEmail}</span>
               </div>
-
-              <div className="space-y-3">
-                {/* Email */}
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("email")}:</span>
-                  <span className="font-medium">{displayEmail}</span>
+              {displayUserId && (
+                <div className="flex items-center gap-3">
+                  <IdCard className="h-3.5 w-3.5 text-white/20" />
+                  <span className="text-[10px] text-white/30 tracking-[0.08em] lowercase">{t("userId")}:</span>
+                  <span className="text-[11px] text-white/40 font-plex-mono tracking-[0.04em]">{displayUserId}</span>
                 </div>
-
-                {/* User ID */}
-                {displayUserId && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <IdCard className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t("userId")}:</span>
-                    <span className="font-medium font-mono">{displayUserId}</span>
-                  </div>
-                )}
-
-                {/* Joined Date */}
-                {joinedDate && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t("joined")}:</span>
-                    <span className="font-medium">
-                      {formatDistanceToNow(joinedDate, { addSuffix: true })}
-                    </span>
-                  </div>
-                )}
-              </div>
+              )}
+              {joinedDate && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-3.5 w-3.5 text-white/20" />
+                  <span className="text-[10px] text-white/30 tracking-[0.08em] lowercase">{t("joined")}:</span>
+                  <span className="text-[11px] text-white/40 tracking-[0.04em]">
+                    {formatDistanceToNow(joinedDate, { addSuffix: true })}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Billing History */}
       <BillingList
@@ -125,7 +110,6 @@ export function SettingsPage({ locale, userEmail, userId }: SettingsPageProps) {
         onLoadMore={() => fetchNextPage()}
       />
 
-      {/* Infinite scroll sentinel */}
       {hasMore && <div ref={observerTarget} className="py-4" />}
     </div>
   );

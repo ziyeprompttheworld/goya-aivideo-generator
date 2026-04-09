@@ -8,9 +8,8 @@
  */
 
 import { useTranslations } from "next-intl";
-import { Copy, AlertCircle, Clock } from "lucide-react";
+import { Copy, AlertCircle } from "lucide-react";
 import { cn } from "@/components/ui";
-import { Button } from "@/components/ui/button";
 import type { VideoHistoryItem } from "@/lib/video-history-storage";
 import { toast } from "sonner";
 
@@ -63,20 +62,22 @@ export function VideoHistoryCard({
     }
   };
 
-  // 元数据标签
+  // metadata tags
   const renderMetadata = () => {
     return (
-      <div className="flex items-center flex-wrap gap-2 text-xs text-zinc-500 mt-2">
-        <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
-          {video.model}
-        </span>
+      <div className="flex items-center flex-wrap gap-1.5 mt-2">
+        {video.model && (
+          <span className="px-2 py-0.5 border border-white/8 text-[9px] text-white/30 tracking-[0.08em] lowercase">
+            {video.model}
+          </span>
+        )}
         {video.aspectRatio && (
-          <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+          <span className="px-2 py-0.5 border border-white/8 text-[9px] text-white/30 tracking-[0.08em]">
             {video.aspectRatio}
           </span>
         )}
         {video.duration && (
-          <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+          <span className="px-2 py-0.5 border border-white/8 text-[9px] text-white/30 tracking-[0.08em]">
             {video.duration}s
           </span>
         )}
@@ -84,39 +85,33 @@ export function VideoHistoryCard({
     );
   };
 
-  // 生成中状态
+  // generating state
   if (isGenerating || video.status === "generating") {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-4">
-        {/* 顶部行：Prompt + 发起时间 */}
+      <div className="border border-white/8 bg-white/[0.02] p-4 space-y-3 font-plex-mono">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-white font-medium line-clamp-1 flex-1">
-            {video.prompt || "Untitled"}
+          <p className="text-[11px] text-white/80 line-clamp-1 flex-1 lowercase">
+            {video.prompt || "untitled"}
           </p>
-          <span className="text-xs text-zinc-500 ml-2">
+          <span className="text-[9px] text-white/25 ml-3 tracking-[0.06em]">
             {formatTime(video.createdAt)}
           </span>
         </div>
 
-        {/* 进度面板：矩形框 + 加载动画 */}
-        <div className="bg-zinc-800/50 rounded-lg p-6">
-          <div className="flex items-center justify-center gap-3 text-sm text-white">
-            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span>{t("generating")}</span>
-          </div>
+        <div className="border border-white/8 bg-white/[0.02] p-5 flex items-center justify-center gap-3">
+          <div className="w-4 h-4 border border-[#008fff] border-t-transparent rounded-full animate-spin" />
+          <span className="text-[10px] text-white/40 lowercase tracking-[0.1em]">{t("generating")}</span>
         </div>
 
-        {/* 元数据标签 */}
         {renderMetadata()}
       </div>
     );
   }
 
-  // 已完成状态
+  // completed state
   if (isCompleted) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
-        {/* 视频缩略图 */}
+      <div className="border border-white/8 bg-white/[0.02] overflow-hidden font-plex-mono">
         <div className="relative aspect-video bg-black">
           {video.videoUrl ? (
             <video
@@ -132,69 +127,61 @@ export function VideoHistoryCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Clock className="w-10 h-10 text-zinc-600" />
+            <div className="w-full h-full flex items-center justify-center border border-white/8">
+              <div className="text-[9px] text-white/20 uppercase tracking-[0.18em]">no preview</div>
             </div>
           )}
         </div>
 
-        {/* 卡片内容 */}
-        <div className="p-4 space-y-3">
-          {/* 顶部行：标题 + 时间 + 复制提示词 */}
+        <div className="p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-white font-medium line-clamp-1 flex-1">
-              {video.prompt || "Untitled"}
+            <p className="text-[11px] text-white/80 line-clamp-1 flex-1 lowercase">
+              {video.prompt || "untitled"}
             </p>
-            <div className="flex items-center gap-2 text-zinc-500">
-              <span className="text-xs">{formatTime(video.createdAt)}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-white/25 tracking-[0.06em]">{formatTime(video.createdAt)}</span>
               {video.prompt && (
                 <button
                   type="button"
                   onClick={handleCopyPrompt}
-                  className="p-1 hover:text-zinc-300 transition-colors"
+                  className="text-white/20 hover:text-white/60 transition-colors"
                   title="Copy prompt"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3 h-3" />
                 </button>
               )}
             </div>
           </div>
-
-          {/* 元数据标签 */}
           {renderMetadata()}
         </div>
       </div>
     );
   }
 
-  // 失败状态
+  // failed state
   if (isFailed) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
-        {/* 失败图标和提示 */}
-        <div className="flex items-center gap-3 text-rose-400">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+      <div className="border border-white/8 bg-white/[0.02] p-4 space-y-3 font-plex-mono">
+        <div className="flex items-center gap-3">
+          <AlertCircle className="w-3.5 h-3.5 text-rose-400/70 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">{t("generationFailed")}</p>
-            <p className="text-xs text-zinc-500 truncate mt-0.5">
-              {video.prompt || "Unknown error"}
+            <p className="text-[10px] text-rose-400/70 lowercase tracking-[0.06em]">{t("generationFailed")}</p>
+            <p className="text-[9px] text-white/25 truncate mt-0.5 lowercase">
+              {video.prompt || "unknown error"}
             </p>
           </div>
         </div>
 
-        {/* 元数据标签 */}
         {renderMetadata()}
 
-        {/* 删除按钮 */}
         {onDelete && (
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
+            type="button"
             onClick={onDelete}
-            className="w-full h-8 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+            className="w-full text-[9px] text-white/20 uppercase tracking-[0.18em] hover:text-rose-400/60 transition-colors py-1.5 border border-white/8 hover:border-rose-400/20"
           >
             {t("removeFromHistory")}
-          </Button>
+          </button>
         )}
       </div>
     );

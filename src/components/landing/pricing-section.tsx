@@ -23,12 +23,14 @@ export async function PricingSection() {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
+      {/* 全黑背景 */}
+      <div className="absolute inset-0 -z-10 bg-black" />
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+          <h2 className="text-2xl md:text-3xl font-light font-plex-mono text-white mb-4 lowercase tracking-widest">
             {t("pricing")}
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-[11px] font-plex-mono text-white/40 tracking-[0.1em] lowercase max-w-2xl mx-auto">
             {t("slogan")}
           </p>
         </div>

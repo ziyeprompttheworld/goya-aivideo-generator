@@ -61,21 +61,25 @@ export function FAQSection() {
   };
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="relative py-24 md:py-32 overflow-hidden">
+      {/* 全黑背景 */}
+      <div className="absolute inset-0 -z-10 bg-black" />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto">
-          {/* 标题 */}
+        <div className="max-w-5xl mx-auto">
+          {/* Title */}
           <BlurFade inView>
-            <div className="text-center mb-12">
+            <motion.div className="text-center mb-12">
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-3xl md:text-4xl font-bold mb-4"
+                className="text-2xl md:text-3xl font-light font-plex-mono text-white mb-4 lowercase tracking-widest"
               >
                 {t("title")}
               </motion.h2>
@@ -84,14 +88,14 @@ export function FAQSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="text-lg text-muted-foreground"
+                className="text-[11px] font-plex-mono text-white/40 tracking-[0.1em] lowercase max-w-2xl mx-auto"
               >
                 {t("subtitle")}
               </motion.p>
-            </div>
+            </motion.div>
           </BlurFade>
 
-          {/* FAQ 列表 */}
+          {/* FAQ list */}
           <BlurFade delay={0.2} inView>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -99,53 +103,49 @@ export function FAQSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <Accordion type="single" collapsible className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {faqData.map((item, index) => (
                   <motion.div
                     key={item.questionKey}
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.1 * index }}
+                    transition={{ delay: 0.08 * index }}
+                    className="flex flex-col gap-4 p-6 border border-white/10 hover:border-white/30 transition-all duration-200 font-plex-mono h-full"
                   >
-                    <AccordionItem
-                      value={`faq-${index}`}
-                      className="px-6 rounded-2xl border border-border bg-background/50 backdrop-blur-sm hover:border-primary/30 transition-colors"
-                    >
-                      <AccordionTrigger className="text-left hover:no-underline cursor-pointer py-4">
-                        <span className="flex items-center gap-3">
-                          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                            {index + 1}
-                          </span>
-                          <span className="font-medium">{t(item.questionKey)}</span>
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pl-10 text-muted-foreground leading-relaxed">
-                        {t(item.answerKey)}
-                      </AccordionContent>
-                    </AccordionItem>
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/50 text-[10px] font-light mt-0.5">
+                        {index + 1}
+                      </span>
+                      <h3 className="text-[12px] font-light tracking-[0.1em] text-white/80 lowercase leading-relaxed">
+                        {t(item.questionKey)}
+                      </h3>
+                    </div>
+                    <p className="pl-9 text-[11px] font-light tracking-[0.05em] text-white/40 leading-[1.8] lowercase">
+                      {t(item.answerKey)}
+                    </p>
                   </motion.div>
                 ))}
-              </Accordion>
+              </div>
             </motion.div>
           </BlurFade>
 
-          {/* 底部提示 */}
+          {/* Bottom contact */}
           <BlurFade delay={0.4} inView>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4 }}
-              className="text-center mt-12 p-6 rounded-2xl bg-primary/10 border border-primary/20"
+              className="text-center mt-12 p-6 rounded-none border border-white/10 font-plex-mono"
             >
-              <p className="text-muted-foreground">
+              <p className="text-[11px] text-white/50 lowercase tracking-[0.1em]">
                 {t("contact")}
                 <a
-                  href="mailto:support@videofly.app"
-                  className="text-primary hover:underline mx-1"
+                  href="mailto:support@goya.ai"
+                  className="text-white hover:text-[#008fff] transition-colors ml-2"
                 >
-                  support@videofly.app
+                  support@goya.ai
                 </a>
               </p>
             </motion.div>

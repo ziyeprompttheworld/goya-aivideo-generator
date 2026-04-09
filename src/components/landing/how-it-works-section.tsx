@@ -61,26 +61,23 @@ export function HowItWorks() {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-background" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent" />
-      </div>
+      {/* 全黑背景 */}
+      <div className="absolute inset-0 -z-10 bg-black" />
 
       <div className="container mx-auto px-4">
         {/* 区域标题 */}
         <BlurFade inView>
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.div className="text-center max-w-3xl mx-auto mb-16">
             {/* 徽章 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1 border border-white/20 mb-6"
             >
-              <Clock className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">
+              <Clock className="h-3 w-3 text-white/50" />
+              <span className="text-[10px] uppercase font-plex-mono tracking-widest text-white/50">
                 {t("badge")}
               </span>
             </motion.div>
@@ -91,10 +88,10 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
+              className="text-2xl md:text-3xl font-light font-plex-mono text-white mb-4 lowercase tracking-widest"
             >
               {t("title")}
-              <span className="block bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mt-2">
+              <span className="block text-white/50 mt-2">
                 {t("subtitle")}
               </span>
             </motion.h2>
@@ -105,11 +102,11 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-muted-foreground max-w-2xl mx-auto"
+              className="text-[11px] font-plex-mono text-white/40 tracking-[0.1em] lowercase max-w-2xl mx-auto"
             >
               {t("description")}
             </motion.p>
-          </div>
+          </motion.div>
         </BlurFade>
 
         {/* 步骤卡片 */}
@@ -126,63 +123,52 @@ export function HowItWorks() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="relative group"
                 >
-                  {/* MagicCard 包裹 */}
-                  <MagicCard
-                    className="h-full rounded-2xl border border-border bg-card dark:bg-black/40 backdrop-blur-xl"
-                    gradientFrom={step.gradient.from}
-                    gradientTo={step.gradient.to}
-                    gradientSize={200}
-                    gradientOpacity={0.12}
+                  {/* 包裹层：抛弃 MagicCard */}
+                  <div
+                    className="h-full border border-white/10 bg-transparent flex flex-col font-plex-mono p-6"
                   >
-                    <div className="relative p-6 h-full flex flex-col">
-                      {/* 步骤编号 + 图标 */}
+                    <div className="relative h-full flex flex-col">
                       <div className="flex items-center gap-3 mb-5">
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                          style={{
-                            background: `linear-gradient(135deg, ${step.gradient.from}, ${step.gradient.to})`,
-                          }}
+                          className="w-6 h-6 flex items-center justify-center text-[10px] font-light text-white shrink-0 border border-white/20"
                         >
                           {step.step}
                         </div>
                         <motion.div
-                          whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                          whileHover={{ scale: 1.05 }}
                           transition={{ duration: 0.4 }}
-                          className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md"
-                          style={{
-                            background: `linear-gradient(135deg, ${step.gradient.from}20, ${step.gradient.to}20)`,
-                          }}
+                          className="w-10 h-10 flex items-center justify-center opacity-70"
                         >
-                          <Icon className="h-6 w-6" style={{ color: step.gradient.from }} />
+                          <Icon className="h-5 w-5 text-white" />
                         </motion.div>
                       </div>
 
                       {/* 标题 */}
-                      <h3 className="text-lg font-semibold mb-2 line-clamp-1">
+                      <h3 className="text-[12px] font-light text-white mb-2 lowercase tracking-[0.1em] line-clamp-1">
                         {t(step.titleKey)}
                       </h3>
 
                       {/* 描述 */}
-                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+                      <p className="text-[11px] text-white/40 tracking-[0.05em] leading-[1.8] lowercase line-clamp-2 flex-1">
                         {t(step.descKey)}
                       </p>
 
                       {/* 统计数据 */}
                       {step.stat && (
-                        <div className="mt-auto pt-3 border-t border-border/50 flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
+                        <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between uppercase tracking-[0.1em]">
+                          <span className="text-[10px] text-white/30">
                             {t(step.stat.labelKey)}
                           </span>
-                          <span className="text-lg font-bold tabular-nums">
+                          <span className="text-[12px] text-white/60 tabular-nums">
                             <NumberTicker value={step.stat.value} />
-                            <span className="text-muted-foreground text-sm ml-0.5">
+                            <span className="text-[10px] ml-0.5">
                               {step.stat.suffix}
                             </span>
                           </span>
                         </div>
                       )}
                     </div>
-                  </MagicCard>
+                  </div>
                 </motion.div>
               </BlurFade>
             );
@@ -198,17 +184,12 @@ export function HowItWorks() {
             className="mt-16 flex justify-center"
           >
             <LocaleLink href="/#generator">
-              <ShimmerButton
-                shimmerColor="#ffffff"
-                shimmerSize="0.05em"
-                shimmerDuration="3s"
-                borderRadius="100px"
-                background="oklch(from var(--primary) l c h)"
-                className="px-8 py-3 text-base font-medium shadow-lg shadow-primary/25"
+              <div
+                className="inline-flex items-center border border-white/20 px-8 py-3 text-[11px] font-plex-mono text-white/70 tracking-[0.1em] hover:border-white/50 transition-colors cursor-pointer lowercase"
               >
                 {t("cta")}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </ShimmerButton>
+                <ArrowRight className="ml-2 h-3 w-3" />
+              </div>
             </LocaleLink>
           </motion.div>
         </BlurFade>

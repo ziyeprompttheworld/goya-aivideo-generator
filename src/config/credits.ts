@@ -218,6 +218,28 @@ export const CREDITS_CONFIG = {
             aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
             qualities: ["480P", "720P", "1080P"],
           },
+          "seedance-2.0": {
+            id: "seedance-2.0",
+            name: "Seedance 2.0",
+            provider: "kie" as const,
+            description: "models.seedance20.description",
+            supportImageToVideo: true,
+            maxDuration: 12,
+            durations: [5, 10, 15],
+            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+            qualities: ["720P", "1080P"],
+          },
+          "seedance-2.0-cn": {
+            id: "seedance-2.0-cn",
+            name: "Seedance 2.0 CN",
+            provider: "volcengine" as const,
+            description: "Volcengine (Doubao) Seedance 2.0 with native multi-modal support",
+            supportImageToVideo: true,
+            maxDuration: 15,
+            durations: [5, 10, 15],
+            aspectRatios: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"],
+            qualities: ["720P", "1080P"],
+          },
         };
 
         const baseConfig = baseConfigs[modelId];
@@ -301,10 +323,13 @@ export function getAvailableModels(options?: {
   return Object.values(CREDITS_CONFIG.models)
     .filter((model) => !enabledOnly || model.enabled !== false)
     .filter((model) => {
-      const effectiveProvider = provider || model.provider;
-      if (!isModelSupported(model.id, effectiveProvider)) return false;
+      // Always allow all models if they are enabled in pricing configuration
+      return true; 
+    })
+    .filter((model) => {
       if (!mode) return true;
-      return isModelModeSupported(model.id, effectiveProvider, mode);
+      // Use the model's default provider to check mode support
+      return isModelModeSupported(model.id, model.provider, mode);
     })
     .sort((a, b) => {
     const aOrder = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
@@ -321,10 +346,18 @@ export function getModelConfig(modelId: string): ModelConfig | null {
 /** 计算模型积分消耗（基于 Evolink 1:1 成本） */
 export function calculateModelCredits(
   modelId: string,
-  params: { duration: number; quality?: string }
+  params: { 
+    duration: number; 
+    quality?: string;
+    inputVideoDuration?: number;
+    hasVideoInput?: boolean;
+    outputNumber?: number;
+  }
 ): number {
   const config = getModelConfig(modelId);
   if (!config) return 0;
+
+  const outputNumber = params.outputNumber ?? 1;
 
   const { base, perExtraSecond = 0, highQualityMultiplier = 1 } = config.creditCost;
 
@@ -372,6 +405,27 @@ export function calculateModelCredits(
         perSecond = 8; // 1080p 有音频
       }
       credits = params.duration * perSecond;
+      break;
+    }
+
+    case "seedance-2.0":
+    case "seedance-2.0-cn": {
+      // Seedance 2.0: 新定价逻辑
+      const outputDuration = params.duration;
+      const inputDuration = params.inputVideoDuration || 0;
+      const hasVideo = params.hasVideoInput ?? false;
+      
+      let rate = 0;
+      if (isHighQuality) {
+        // 720P or higher
+        rate = hasVideo ? 25 : 41;
+      } else {
+        // 480P or lower
+        rate = hasVideo ? 11.5 : 19;
+      }
+      
+      const durationSum = hasVideo ? (inputDuration + outputDuration) : outputDuration;
+      credits = durationSum * rate;
       break;
     }
 

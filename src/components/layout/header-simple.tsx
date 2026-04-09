@@ -2,12 +2,10 @@
 
 import Link from "next/link";
 import { useLocalePathname, useLocaleRouter } from "@/i18n/navigation";
-import { Gem, Globe, Menu, Sun, Moon, Monitor } from "lucide-react";
+import { Gem, Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 
 import { authClient, type User } from "@/lib/auth/client";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui";
 import { useCredits } from "@/stores/credits-store";
 import { UserAvatar } from "@/components/user-avatar";
@@ -37,7 +35,6 @@ export function HeaderSimple({
 }: HeaderSimpleProps) {
   const { balance } = useCredits();
   const signInModal = useSigninModal();
-  const { setTheme } = useTheme();
   const router = useLocaleRouter();
   const pathname = useLocalePathname();
   const tCommon = useTranslations("Common");
@@ -55,91 +52,52 @@ export function HeaderSimple({
   };
 
   return (
-    <header className="sticky top-0 z-50 h-16 border-b border-border bg-background">
-      <div className="flex h-full items-center justify-between px-4">
+    <header className="sticky top-0 z-50 h-14 border-b border-white/8 bg-black/90 backdrop-blur-md font-plex-mono">
+      <div className="flex h-full items-center justify-between px-6">
         {/* Left: Logo + Mobile Menu */}
         <div className="flex items-center gap-4">
           <button
             type="button"
-            className="lg:hidden p-2 hover:bg-muted rounded-md"
+            className="lg:hidden p-2 text-white/40 hover:text-white transition-colors"
             onClick={onMobileMenuToggle}
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4" />
           </button>
-          <Link href={`/${lang}`} className="flex items-center gap-2">
-            <span className="text-xl font-semibold">VideoFly</span>
+          <Link href={`/${lang}`} className="text-[15px] font-normal tracking-[0.08em] text-white/80 hover:text-white transition-colors lowercase">
+            goya.
           </Link>
         </div>
 
         {/* Right: Credits + User Menu */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           {/* Language Switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
-              >
-                <Globe className="h-4 w-4" />
-                <span className="text-xs font-semibold">
-                  {currentLocale.toUpperCase()}
-                </span>
-              </Button>
+              <button className="text-[10px] tracking-[0.25em] text-white/30 hover:text-white/70 transition-colors uppercase">
+                {currentLocale}
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px]">
-              <div className="px-2 py-1 text-xs text-muted-foreground">
-                {tCommon("language")}
-              </div>
+            <DropdownMenuContent align="end" className="min-w-[120px] bg-black border-white/10 font-plex-mono">
               {i18n.locales.map((locale) => (
                 <DropdownMenuItem
                   key={locale}
                   onSelect={() => switchLocale(locale)}
                   className={cn(
-                    "cursor-pointer",
-                    locale === currentLocale && "bg-muted"
+                    "text-[11px] tracking-[0.1em] lowercase text-white/50 hover:text-white",
+                    locale === currentLocale && "text-white/80"
                   )}
                 >
-                  <span>{localeMap[locale]}</span>
+                  {localeMap[locale]}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Theme Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 px-0 text-muted-foreground hover:text-foreground"
-                aria-label="Toggle theme"
-              >
-                <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[120px]">
-              <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer">
-                <Sun className="mr-2 h-4 w-4" />
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer">
-                <Moon className="mr-2 h-4 w-4" />
-                Dark
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer">
-                <Monitor className="mr-2 h-4 w-4" />
-                System
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* Credits Display */}
           {user && balance && (
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted border border-border">
-              <Gem className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-medium">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 border border-white/10 bg-white/[0.02]">
+              <Gem className="h-3 w-3 text-white/40" />
+              <span className="text-[11px] text-white/50 tracking-widest">
                 {balance.availableCredits}
               </span>
             </div>
@@ -148,29 +106,29 @@ export function HeaderSimple({
           {/* User Menu */}
           {user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2">
+              <DropdownMenuTrigger className="flex items-center gap-2 text-white/40 hover:text-white/80 transition-colors">
                 <UserAvatar
                   user={{ name: user.name ?? null, image: user.image ?? null }}
-                  className="h-8 w-8"
+                  className="h-7 w-7"
                 />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-44 bg-black border-white/10 font-plex-mono">
                 {user.email && (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                  <div className="px-2 py-1.5 text-[10px] text-white/30 tracking-[0.08em] lowercase truncate">
                     {user.email}
                   </div>
                 )}
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-white/8" />
                 {userMenuItems.map((item) => (
                   <DropdownMenuItem key={item.id} asChild>
-                    <Link href={`/${lang}${item.href}`}>
+                    <Link href={`/${lang}${item.href}`} className="text-[11px] text-white/50 hover:text-white lowercase tracking-[0.08em]">
                       {menuLabelMap[item.id] ?? item.title}
                     </Link>
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-white/8" />
                 <DropdownMenuItem
-                  className="cursor-pointer text-destructive"
+                  className="text-[11px] text-white/30 hover:text-red-400 lowercase tracking-[0.08em]"
                   onSelect={async () => {
                     await authClient.signOut();
                     router.push(`/${lang}`);
@@ -182,9 +140,12 @@ export function HeaderSimple({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="default" size="sm" onClick={() => signInModal.onOpen()}>
-              {tCommon("login")}
-            </Button>
+            <button
+              onClick={() => signInModal.onOpen()}
+              className="text-[11px] tracking-[0.18em] text-white/50 hover:text-white transition-colors lowercase border border-white/10 px-4 py-1.5"
+            >
+              sign in
+            </button>
           )}
         </div>
       </div>

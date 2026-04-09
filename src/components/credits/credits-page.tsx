@@ -86,10 +86,10 @@ export function CreditsPage({ locale }: CreditsPageProps) {
   }, [router]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-plex-mono">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      <div className="border-b border-white/8 pb-6">
+        <h1 className="text-[22px] font-light text-white/80 lowercase tracking-tight">{t("title")}</h1>
       </div>
 
       {/* Balance Card */}

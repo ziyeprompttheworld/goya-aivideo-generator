@@ -42,7 +42,7 @@ export function LandingFooter() {
 
 
   return (
-    <footer className="border-t border-border bg-background">
+    <footer className="border-t border-white/10 bg-black font-plex-mono text-white/50">
       <div className="container mx-auto px-4 py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -50,19 +50,19 @@ export function LandingFooter() {
           <div className="col-span-2 md:col-span-1">
             <LocaleLink
               href="/"
-              className="flex items-center gap-2 text-xl font-semibold mb-4"
+              className="flex items-center gap-2 text-[13px] font-normal tracking-[0.05em] text-white hover:text-white/80 transition-colors mb-4 lowercase"
             >
-              🎬 VideoFly
+              goya.
             </LocaleLink>
-            <p className="text-sm text-muted-foreground mb-4">
-              Transform your ideas into stunning videos with AI.
+            <p className="text-[11px] font-light tracking-[0.1em] text-white/40 mb-4 lowercase">
+              make moving images.
             </p>
           </div>
 
           {/* Footer Links */}
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h3 className="text-sm font-semibold text-foreground mb-4">
+              <h3 className="text-[11px] font-light text-white/60 mb-4 lowercase tracking-[0.1em]">
                 {section.title}
               </h3>
               <ul className="space-y-2">
@@ -70,7 +70,7 @@ export function LandingFooter() {
                   <li key={link.title}>
                     <LocaleLink
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-[11px] font-light text-white/30 hover:text-white/80 transition-colors lowercase tracking-[0.05em]"
                     >
                       {link.title}
                     </LocaleLink>
@@ -82,14 +82,14 @@ export function LandingFooter() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-white/10">
+          <p className="text-[10px] font-light text-white/30 lowercase tracking-[0.05em]">
             {t('copyright', { year: currentYear })}
           </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            Made with
-            <Heart className="h-4 w-4 fill-pink-500 text-pink-500" />
-            by VideoFly Team
+          <p className="text-[10px] font-light text-white/30 flex items-center gap-1 lowercase tracking-[0.05em]">
+            made with
+            <Heart className="h-3 w-3 text-[#008fff]" />
+            by goya.ai
           </p>
         </div>
       </div>

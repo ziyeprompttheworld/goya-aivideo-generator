@@ -24,6 +24,10 @@ export interface GenerateVideoParams {
   quality?: string; // "standard" | "high"
   imageUrl?: string; // image-to-video
   imageUrls?: string[]; // image-to-video (multi-image)
+  firstFrameUrl?: string;
+  lastFrameUrl?: string;
+  referenceImageUrls?: string[];
+  videoUrls?: string[];
   mode?: string;
   outputNumber?: number;
   generateAudio?: boolean;
@@ -85,21 +89,31 @@ export class VideoService {
 
     const effectiveDuration = params.duration || modelConfig.durations[0] || 5;
 
+    const hasImageInput =
+      (params.imageUrls && params.imageUrls.length > 0) || 
+      Boolean(params.imageUrl) || 
+      Boolean(params.firstFrameUrl) || 
+      Boolean(params.referenceImageUrls && params.referenceImageUrls.length > 0) ||
+      Boolean(params.videoUrls && params.videoUrls.length > 0);
+
     const outputNumber = Math.max(1, params.outputNumber ?? 1);
     const creditsRequired = calculateModelCredits(params.model, {
       duration: effectiveDuration,
       quality: params.quality,
+      hasVideoInput: params.videoUrls && params.videoUrls.length > 0,
+      inputVideoDuration: params.videoUrls && params.videoUrls.length > 0 ? 5 : 0, 
     }) * outputNumber;
 
-    const hasImageInput =
-      (params.imageUrls && params.imageUrls.length > 0) || Boolean(params.imageUrl);
     const resolvedMode = normalizeGenerationMode(params.mode, hasImageInput);
 
     if (
       (resolvedMode === "image-to-video" ||
         resolvedMode === "reference-to-video" ||
         resolvedMode === "frames-to-video") &&
-      !hasImageInput
+      !hasImageInput &&
+      // Seedance 2.0 models support reference modes as optional
+      params.model !== "seedance-2.0" && 
+      params.model !== "seedance-2.0-cn"
     ) {
       throw new ApiError(
         `Mode ${resolvedMode} requires uploaded input media`,
@@ -124,19 +138,16 @@ export class VideoService {
     }
 
     const configuredProvider = getConfiguredAIProvider();
-    if (configuredProvider && !isModelSupported(params.model, configuredProvider)) {
-      throw new ApiError(
-        `Model ${params.model} is not available for provider ${configuredProvider}`,
-        400,
-        {
-          code: "MODEL_NOT_AVAILABLE_FOR_PROVIDER",
-          model: params.model,
-          provider: configuredProvider,
-        }
-      );
+    
+    // Choose the actual provider: 
+    // 1. If DEFAULT_AI_PROVIDER is set AND it supports this model, use it.
+    // 2. Otherwise, use the model's primary provider defined in credits.ts
+    let actualProvider: ProviderType;
+    if (configuredProvider && isModelSupported(params.model, configuredProvider)) {
+      actualProvider = configuredProvider;
+    } else {
+      actualProvider = modelConfig.provider;
     }
-
-    const actualProvider = configuredProvider || modelConfig.provider;
     if (!isModelModeSupported(params.model, actualProvider, resolvedMode)) {
       throw new ApiError(
         `Mode ${resolvedMode} is not supported for model ${params.model} on provider ${actualProvider}`,
@@ -167,10 +178,14 @@ export class VideoService {
           mode: resolvedMode,
           imageUrl: params.imageUrl,
           imageUrls: params.imageUrls,
+          firstFrameUrl: params.firstFrameUrl,
+          lastFrameUrl: params.lastFrameUrl,
+          referenceImageUrls: params.referenceImageUrls,
+          videoUrls: params.videoUrls,
           generateAudio: params.generateAudio,
         },
         status: VideoStatus.PENDING,
-        startImageUrl: params.imageUrls?.[0] || params.imageUrl || null,
+        startImageUrl: params.firstFrameUrl || params.imageUrls?.[0] || params.imageUrl || null,
         creditsUsed: creditsRequired,
         duration: effectiveDuration,
         aspectRatio: params.aspectRatio || null,
@@ -243,6 +258,10 @@ export class VideoService {
         quality: params.quality,
         imageUrl: params.imageUrl,
         imageUrls: params.imageUrls,
+        firstFrameUrl: params.firstFrameUrl,
+        lastFrameUrl: params.lastFrameUrl,
+        referenceImageUrls: params.referenceImageUrls,
+        videoUrls: params.videoUrls,
         mode: resolvedMode,
         outputNumber,
         generateAudio: params.generateAudio,

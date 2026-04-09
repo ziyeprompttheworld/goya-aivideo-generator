@@ -30,7 +30,7 @@ export type ModelBadge = "New" | "Hot" | "Audio" | "Beta" | "Pro" | "Coming Soon
  * - start-end: Two slots (Start frame, End frame)
  * - characters: Three slots (Image1, Image2, Image3)
  */
-export type UploadType = "single" | "start-end" | "characters";
+export type UploadType = "single" | "start-end" | "characters" | "multi-reference";
 
 /**
  * Mode icon type for visual representation
@@ -373,6 +373,8 @@ export interface UploadedImage {
   preview: string;
   /** Slot identifier (e.g., "default", "start", "char1") */
   slot: string;
+  /** Whether this asset is a video file */
+  isVideo?: boolean;
 }
 
 /**
@@ -464,6 +466,8 @@ export type CreditCalculator = (params: {
   outputNumber: number;
   duration?: string;
   resolution?: string;
+  hasVideoInput?: boolean;
+  inputVideoDuration?: number;
 }) => number;
 
 /**
@@ -550,6 +554,18 @@ export interface SubmitData {
   generateAudio?: boolean;
   /** Estimated credits to be consumed */
   estimatedCredits: number;
+  /** First frame URL (Seedance 2.0 frames-to-video) */
+  firstFrameUrl?: string;
+  /** Last frame URL (Seedance 2.0 frames-to-video) */
+  lastFrameUrl?: string;
+  /** Reference image URLs (Seedance 2.0 reference mode) */
+  referenceImageUrls?: string[];
+  /** Reference video URLs (Seedance 2.0 reference mode) */
+  referenceVideoUrls?: string[];
+  /** Whether the request includes video input */
+  hasVideoInput?: boolean;
+  /** Duration of the input video in seconds */
+  inputVideoDuration?: number;
 }
 
 // ============================================================================
@@ -671,6 +687,27 @@ export interface VideoGeneratorInputProps {
    * Custom texts for internationalization
    */
   texts?: GeneratorTexts;
+
+  // === UI Visibility Controls ===
+
+  /**
+   * Hide the model selection dropdown
+   * Useful for single-model websites
+   * @default false
+   */
+  hideModelSelector?: boolean;
+
+  /**
+   * Hide the generation mode selection dropdown
+   * @default false
+   */
+  hideModeSelector?: boolean;
+
+  /**
+   * Hide the generation type switch (Video/Image)
+   * @default false
+   */
+  hideGenerationTypeSwitch?: boolean;
 
   // === Callbacks ===
 

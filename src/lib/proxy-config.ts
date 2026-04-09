@@ -9,31 +9,10 @@
 
 const PROXY_URL = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
 
+// Proxy setup removed due to compatibility issues with built-in fetch in some environments.
+// Node.js 18+ includes built-in fetch that respects HTTP_PROXY via other means or requires native setup.
 if (PROXY_URL) {
-  try {
-    // Note: In Next.js server context, undici might not be directly importable
-    // We'll use a dynamic require/import approach
-    let undici;
-
-    // Try CommonJS require first (for server-side compatibility)
-    try {
-      undici = require("undici");
-    } catch (e) {
-      // If require fails, undici is built into Node.js 18+
-      // Skip proxy setup in this case
-      console.log(`ℹ️  [Proxy] Undici not available as package, using built-in fetch`);
-    }
-
-    if (undici) {
-      const proxyAgent = new undici.ProxyAgent(PROXY_URL);
-      undici.setGlobalDispatcher(proxyAgent);
-      console.log(`📡 [Proxy] Global proxy configured: ${PROXY_URL}`);
-    }
-  } catch (error) {
-    console.warn(`⚠️  [Proxy] Failed to configure undici proxy:`, error instanceof Error ? error.message : error);
-  }
-} else {
-  console.log(`ℹ️  [Proxy] No HTTP_PROXY/HTTPS_PROXY environment variable found`);
+  console.log(`📡 [Proxy] Proxy environment variables detected: ${PROXY_URL}`);
 }
 
 export {};

@@ -1,4 +1,4 @@
-import { Inter as FontSans } from "next/font/google";
+import { Inter as FontSans, IBM_Plex_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { getLocale, getMessages } from "next-intl/server";
 
@@ -29,7 +29,15 @@ const fontHeading = localFont({
   variable: "--font-heading",
 });
 
+const fontPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-plex-mono",
+});
 
+
+
+import { GoyaCursor } from "@/components/common/goya-cursor";
 
 export function generateStaticParams() {
   return i18n.locales.map((locale) => ({ locale }));
@@ -62,11 +70,13 @@ export const metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: siteConfig.name }],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
+    images: ["/og.png"],
   },
   icons: {
     icon: [
@@ -120,7 +130,9 @@ export default async function RootLayout({
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
           fontHeading.variable,
+          fontPlexMono.variable
         )}
+        suppressHydrationWarning
       >
         <ThemeProvider
           attribute="class"
@@ -136,6 +148,7 @@ export default async function RootLayout({
               <SpeedInsights />
               <Toaster richColors position="top-right" />
               <TailwindIndicator />
+              <GoyaCursor />
             </QueryProvider>
           </NextIntlClientProvider>
         </ThemeProvider>

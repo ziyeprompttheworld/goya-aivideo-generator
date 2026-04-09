@@ -23,9 +23,9 @@ export interface SiteConfig {
 }
 
 export const siteConfig: SiteConfig = {
-  name: "VideoFly",
-  description: "AI Video Generation Platform - Create stunning videos with Sora 2, Veo 3.1, and more",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://videofly.app",
+  name: "Goya.ai",
+  description: "AI Video Generation Platform - Create stunning videos with Sora 2, Veo 3.1, Wan 2.6, and more",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://goya.ai",
   ogImage: "/og.png",
   links: {},
   auth: {

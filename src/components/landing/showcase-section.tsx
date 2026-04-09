@@ -1,235 +1,245 @@
 "use client";
 
-import { Play, ArrowRight, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { Marquee } from "@/components/magicui/marquee";
+import { usePromptStore } from "@/store/use-prompt-store";
+import { Sparkles } from "lucide-react";
 
-import { BlurFade } from "@/components/magicui/blur-fade";
-import { BorderBeam } from "@/components/magicui/border-beam";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { LocaleLink } from "@/i18n/navigation";
-
-/**
- * Showcase Section - 视频示例展示区域
- *
- * 设计模式: Video Gallery with Preview Cards
- * - 展示 AI 生成的视频示例
- * - 悬停播放预览
- * - Glassmorphism 风格卡片
- * - 参考 Linear/Vercel 的产品展示风格
- */
-
-// 示例视频数据
-const showcaseVideos = [
+const showcaseItems = [
   {
     id: 1,
-    title: "Cinematic Nature",
-    description: "A stunning landscape video",
-    thumbnail: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    gradient: "from-blue-500 to-cyan-500",
-    tag: "Text to Video",
+    prompt: "Reference @Image1 @Image2 for the silver-haired samurai, @Image3 @Image4 for the moonlit temple courtyard. High-end 3D Anime CG. A lightning-fast sword duel where blades clash with bright white sparks. The character executes a low-crouch dash and a vertical slash. Dynamic shaky-cam tracking follows the impact amidst swirling pink petals.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1770617365351_pWUvusx9.mp4",
   },
   {
     id: 2,
-    title: "Product Animation",
-    description: "Smooth product showcase",
-    thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
-    gradient: "from-purple-500 to-pink-500",
-    tag: "Image to Video",
+    prompt: "Reference @Image1 @Image2 for the cyber-ninja with a glowing mask, @Image3 @Image4 for the rainy neon rooftop. Cyberpunk anime aesthetic. The character draws a violet plasma katana, deflecting bullets in slow-motion. Handheld orbit lens with heavy rain distortion and purple-blue chromatic aberration.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1770618273175_M6cW36mJ.mp4",
   },
   {
     id: 3,
-    title: "Abstract Art",
-    description: "Creative AI-generated visuals",
-    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
-    gradient: "from-orange-500 to-red-500",
-    tag: "AI Creative",
+    prompt: "Reference @Image1 @Image2 for the female warrior in black leather, @Image3 @Image4 for the misty bamboo maze. Noir action anime. A sequence of rapid martial arts strikes and a backflip escape. Low-angle sliding camera through the bamboo stalks with thick volumetric fog and moonlight silhouettes.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1770618931964_28zeDQBH.mp4",
   },
   {
     id: 4,
-    title: "Urban Scene",
-    description: "City life in motion",
-    thumbnail: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
-    gradient: "from-green-500 to-emerald-500",
-    tag: "Text to Video",
+    prompt: "Reference @Image1 @Image2 for the monk in red robes, @Image3 @Image4 for the sunlit mountain peak. Epic game cinematic style. The character performs a heavy ground-pound jump, creating a massive shockwave that displaces rocks and dust. Wide panoramic sweep to a dramatic low-angle heroic pose.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1775194361294_SXn6akG9.mp4",
   },
   {
     id: 5,
-    title: "Character Animation",
-    description: "Bringing characters to life",
-    thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80",
-    gradient: "from-indigo-500 to-purple-500",
-    tag: "Character",
+    prompt: "Reference @Image1 @Image2 for the spear-wielding hero, @Image3 @Image4 for the ancient stone bridge. Professional 3D anime combat. A continuous spear-spinning combo with golden energy trails. Multi-angle jump-cuts capturing the fluid rotation and powerful lunges against a sunset sky.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1775188128418_vnfwuDsj.mp4",
   },
   {
     id: 6,
-    title: "Space Journey",
-    description: "Explore the cosmos",
-    thumbnail: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
-    gradient: "from-teal-500 to-cyan-500",
-    tag: "Text to Video",
+    prompt: "Reference @Image1 @Image2 for the hooded assassin, @Image3 @Image4 for the dark gothic library. Dark fantasy anime mood. A tense moment of drawing a hidden dagger followed by a supernatural shadow-dash. Extreme close-up of the cold steel and the assassin's sharp focused eye.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1775200730595_9fXLmiHd.mp4",
+  },
+  {
+    id: 7,
+    prompt: "Reference @Image1 @Image2 for the character in a flowy white kimono, @Image3 @Image4 for the reflecting water surface. Elegant Zen-style animation. A slow-motion martial arts dance sequence on water, featuring liquid splashes and shimmery light reflections. Soft zoom-in focusing on the fluid hand movements.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1775188761712_tHGAgzLy.mp4",
+  },
+  {
+    id: 8,
+    prompt: "Reference @Image1 @Image2 for the swordsman in purple, @Image3 @Image4 for the autumn courtyard. High-fidelity 3D anime. A sequence of high-speed sword parries and a finishing thrust. Spinning gimbal shot capturing the cascade of red maple leaves reacting to the blade's wind.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1770627047985_WYEvEd7j.mp4",
+  },
+  {
+    id: 9,
+    prompt: "Reference @Image1 @Image2 for the martial monk, @Image3 @Image4 for the blue crystal cavern. Fantasy RPG cinematic style. Using glowing blue sticks to perform a rapid martial arts form. Wide-angle shot showing the bioluminescent environment and refracting light trails.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1775188464994_6ZaW8Ki0.mp4",
+  },
+  {
+    id: 10,
+    prompt: "Reference @Image1 @Image2 for the bearded sage, @Image3 @Image4 for the misty floating islands. Ethereal wuxia anime. Slow meditative movements creating visible energy ripples in the clouds. 360-degree rotating camera capturing the transcendental environment and spiritual aura.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1770618718325_qVrPkEZ4.mp4",
+  },
+  {
+    id: 11,
+    prompt: "Reference @Image1 @Image2 for the armored knight, @Image3 @Image4 for the scorched earth. Dark anime battlefield aesthetic. A massive vertical sword strike that cracks the ground with orange lava-like energy. Ground-level shaky tracking shot with heavy smoke and flying sparks.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1770619066233_For2ECDT.mp4",
+  },
+  {
+    id: 12,
+    prompt: "Reference @Image1 @Image2 for the spirit fox slayer, @Image3 @Image4 for the dense red forest. High-octane action anime. A supernatural dash sequence through a maze of trees, leaves flying in the wake of the movement. Smooth side-tracking drone shot at high velocity.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/1775201074754_7n64QXXP.mp4",
+  },
+  {
+    id: 13,
+    prompt: "reference the character movements and cinematography from @video1. generate a fight scene with @image2 as the left character and @image1 as the right character. intense action soundtrack.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_fight_scene.mp4",
+  },
+  {
+    id: 14,
+    prompt: "reference the camera movement from @video1. create a tech park concept video centered on the skyscraper in @image1. match the first-person diving perspective, conveying the futuristic and technological atmosphere of the campus.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_techpark_dive.mp4",
+  },
+  {
+    id: 15,
+    prompt: "reference the special effect from @video1. make the girl in @image1 grow the same wings, with identical wing-emergence trajectory.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_wings_effect.mp4",
+  },
+  {
+    id: 16,
+    prompt: "neon-lit futuristic sky corridor backdrop, with flying vehicles and holographic ads. the girl from @image2 releases silver levitating lanterns with holographic projections. camera pulls back to reveal lanterns filling the sky. scene fades to reveal the logo from @image1. 3d cyberpunk sci-fi animation style.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_cyberpunk_logo.mp4",
+  },
+  {
+    id: 17,
+    prompt: "hand-drawn comic style. three people sit together eating the fried chicken from @image1, warm and joyful atmosphere. the scene gradually blurs, and the text 'joy is in every moment' appears in the center of the frame.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_comic_chicken.mp4",
+  },
+  {
+    id: 18,
+    prompt: "extract the camera from @image1 @image2 @image3. place it on a white table against a pure white background. lens focuses on the camera in extreme close-up, then slowly orbits around it, clearly revealing the front, side, and back.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_camera_360.mp4",
+  },
+  {
+    id: 19,
+    prompt: "warm residential setting. medium shot of the thermos flask from @image1. camera smoothly pushes in to a close-up. a hand enters frame naturally, gently grips the flask and lifts it. camera follows the hand's slight rotation to showcase the product.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_thermos_product.mp4",
+  },
+  {
+    id: 20,
+    prompt: "add fried chicken, pizza, and other snacks onto the table surface in @video1. keep all other elements unchanged.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_table_food_add.mp4",
+  },
+  {
+    id: 21,
+    prompt: "replace the perfume bottle in @video1 with the face cream from @image1. keep all movements and camera work unchanged.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_perfume_replace.mp4",
+  },
+  {
+    id: 22,
+    prompt: "a leaf drifts down and lands on the ground, triggering a burst of golden particle effects. a gust of wind sweeps through, transitioning seamlessly into the next scene.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_leaf_extend.mp4",
+  },
+  {
+    id: 23,
+    prompt: "reference @image1 @image2 for the girl's appearance. the girl is in a strawberry field, picks one, takes a bite, and smiles saying: 'this is the real deal!' a speech bubble appears around her displaying the line.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_strawberry_bubble.mp4",
+  },
+  {
+    id: 24,
+    prompt: "reference @image1 for the two people chatting in an office. the woman speaks first: 'you always arrive right on time — do you enjoy that perfect timing?' the man smiles and replies: 'i have my own rhythm.' dialogue flows naturally, with matching subtitles appearing at the bottom of the frame.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_office_subtitle.mp4",
+  },
+  {
+    id: 25,
+    prompt: "set in the restaurant from @image4, with people coming and going. the girl from @image1 wears the outfit from @image2, tidying items at the counter. the boy from @image3 is a customer who approaches her, trying to ask for her contact. the logo from @image5 remains fixed in the lower-right corner throughout.",
+    tag: "seedance 2.0",
+    video: "/assets/seedance_showcase/sd2_restaurant_scene.mp4",
   },
 ];
+
+function ShowcaseCard({ item }: { item: (typeof showcaseItems)[0] }) {
+  const setPrompt = usePromptStore((state) => state.setPrompt);
+
+  const handleCardClick = () => {
+    setPrompt(item.prompt);
+    // Smooth scroll back to top (where the generator is)
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  return (
+    <div 
+      onClick={handleCardClick}
+      className="relative shrink-0 w-[280px] md:w-[420px] border border-white/10 overflow-hidden group cursor-pointer bg-black/40 backdrop-blur-sm transition-all hover:border-primary/50"
+    >
+      <div className="relative aspect-video overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        >
+          <source src={item.video} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500 flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary/20 backdrop-blur-md px-4 py-2 rounded-full border border-primary/40">
+                <span className="text-[10px] text-white font-medium uppercase tracking-widest flex items-center gap-2">
+                    <Sparkles className="w-3 h-3" />
+                    Try this prompt
+                </span>
+            </div>
+        </div>
+        <div className="absolute top-3 left-3 px-1.5 py-0.5 border border-white/20 bg-black/50">
+          <span className="text-[9px] font-plex-mono text-white/60 lowercase tracking-[0.15em]">{item.tag}</span>
+        </div>
+      </div>
+      <div className="px-4 py-3 bg-black border-t border-white/10">
+        <p className="text-[10px] font-plex-mono text-white/40 lowercase tracking-[0.08em] leading-relaxed group-hover:text-white/80 transition-colors">
+           → {item.prompt}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function ShowcaseSection() {
   const t = useTranslations("Showcase");
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/30 to-background" />
-      </div>
+    <section id="showcase" className="relative z-20 pb-24 overflow-hidden bg-black font-plex-mono border-y border-white/5" style={{ marginTop: "0" }}>
+      <div style={{ paddingTop: "48px" }}>
 
-      <div className="container mx-auto px-4">
-        {/* 区域标题 */}
-        <BlurFade inView>
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            {/* 徽章 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 mb-6"
-            >
-              <Sparkles className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {t("badge")}
-              </span>
-            </motion.div>
+      {/* Marquee row 1 — forward */}
+      <Marquee pauseOnHover className="[--duration:70s] mb-4">
+        {showcaseItems.slice(0, 13).map((item) => (
+          <ShowcaseCard key={item.id} item={item} />
+        ))}
+      </Marquee>
 
-            {/* 主标题 */}
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
-            >
-              {t("title")}
-              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">
-                {t("subtitle")}
-              </span>
-            </motion.h2>
+      {/* Marquee row 2 — reverse */}
+      <Marquee reverse pauseOnHover className="[--duration:70s]">
+        {showcaseItems.slice(13).map((item) => (
+          <ShowcaseCard key={item.id} item={item} />
+        ))}
+      </Marquee>
 
-            {/* 描述 */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-muted-foreground max-w-2xl mx-auto"
-            >
-              {t("description")}
-            </motion.p>
-          </div>
-        </BlurFade>
-
-        {/* 视频展示网格 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {showcaseVideos.map((video, index) => (
-            <BlurFade key={video.id} delay={index * 0.05} inView>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className="group relative"
-              >
-                {/* 视频卡片 */}
-                <div className="relative rounded-2xl overflow-hidden border border-border bg-background shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
-                  {/* 边框光效 - 仅第一个大卡片 */}
-                  {index === 0 && (
-                    <BorderBeam
-                      size={300}
-                      duration={15}
-                      anchor={90}
-                      borderWidth={2}
-                      colorFrom="#3B82F6"
-                      colorTo="#A855F7"
-                    />
-                  )}
-
-                  {/* 缩略图 */}
-                  <div className="relative aspect-video overflow-hidden">
-                    <motion.img
-                      src={video.thumbnail}
-                      alt={`${video.title} - ${video.description}. AI-generated video example showing ${video.tag} capabilities.`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-
-                    {/* 悬停时的遮罩 */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
-
-                    {/* 播放按钮 */}
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      whileInView={{ scale: 1, opacity: 1 }}
-                      whileHover={{ scale: 1.1 }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <div className="relative">
-                        <motion.div
-                          className="w-16 h-16 rounded-full bg-white/90 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center shadow-xl group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-300"
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          <Play className="h-6 w-6 text-foreground group-hover:text-white transition-colors ml-1" />
-                        </motion.div>
-                        {/* 波纹动画 */}
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 animate-ping opacity-0 group-hover:opacity-30" />
-                      </div>
-                    </motion.div>
-
-                    {/* 标签 */}
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.3 }}
-                      className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/20"
-                    >
-                      <span className="text-xs font-medium text-white">{video.tag}</span>
-                    </motion.div>
-                  </div>
-
-                  {/* 视频信息 */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold mb-1 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-blue-600 group-hover:to-purple-600 transition-all">
-                      {video.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{video.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </BlurFade>
-          ))}
+      {/* Fade edges */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black via-black/80 to-transparent z-10" />
+      
+      <div className="mt-16 text-center">
+        <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/5 bg-white/5 backdrop-blur-md">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          <span className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-plex-mono">
+            {t("ctaText")}
+          </span>
         </div>
-
-        {/* 底部 CTA */}
-        <BlurFade delay={0.4} inView>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <p className="text-muted-foreground mb-6">{t("ctaText")}</p>
-            <LocaleLink href="/#generator">
-              <ShimmerButton
-                shimmerColor="#ffffff"
-                shimmerSize="0.05em"
-                shimmerDuration="3s"
-                borderRadius="100px"
-                background="linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)"
-                className="px-8 py-3 text-base font-medium shadow-lg shadow-blue-500/25"
-              >
-                {t("ctaButton")}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </ShimmerButton>
-            </LocaleLink>
-          </motion.div>
-        </BlurFade>
+      </div>
       </div>
     </section>
   );

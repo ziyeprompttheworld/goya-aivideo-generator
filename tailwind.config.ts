@@ -14,6 +14,9 @@ export default {
           },
         },
       },
+      fontFamily: {
+        "plex-mono": ["var(--font-plex-mono)", "monospace"],
+      },
     },
   },
 } satisfies Config;

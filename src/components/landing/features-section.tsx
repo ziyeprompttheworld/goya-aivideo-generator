@@ -1,82 +1,39 @@
 "use client";
 
-import { Video, Image, Layers, Zap, Shield, Clock } from "lucide-react";
+import { Video, Zap, Layers, Shield, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
-import { BlurFade } from "@/components/magicui/blur-fade";
-import { MagicCard } from "@/components/magicui/magic-card";
-import { NumberTicker } from "@/components/magicui/number-ticker";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { cn } from "@/components/ui";
-import { LocaleLink } from "@/i18n/navigation";
-
-/**
- * Features Section - Bento Grid 特性展示
- *
- * 设计模式: Bento Grid with MagicCard
- * - 不等宽便当网格布局
- * - MagicCard 鼠标跟随光效
- * - BorderBeam 突出主要特性
- * - NumberTicker 数据动画
- */
-
-// 主要特性数据
-const features = [
+const allFeatures = [
   {
     icon: Video,
-    titleKey: "textToVideo.title",
-    descKey: "textToVideo.description",
-    stat: { value: 30, suffix: "s", labelKey: "textToVideo.stat" },
-    gradient: { from: "#9E7AFF", to: "#FE8BBB" },
-    featured: true,
+    titleKey: "True Human Kinetics",
+    descKey: "Seedance 2.0 algorithm ensuring fluid, natural human motion and limb consistency.",
   },
   {
-    icon: Image,
-    titleKey: "imageToVideo.title",
-    descKey: "imageToVideo.description",
-    stat: { value: 1080, suffix: "p", labelKey: "imageToVideo.stat" },
-    gradient: { from: "#6366F1", to: "#8B5CF6" },
-    featured: false,
+    icon: Zap,
+    titleKey: "Physical Photorealism",
+    descKey: "Accurate volumetric lighting and ray-traced reflections on complex surfaces.",
   },
   {
     icon: Layers,
-    titleKey: "referenceGen.title",
-    descKey: "referenceGen.description",
-    stat: { value: 9, suffix: "+", labelKey: "referenceGen.stat" },
-    gradient: { from: "#06B6D4", to: "#22D3EE" },
-    featured: false,
-  },
-];
-
-// 核心优势数据
-const benefits = [
-  {
-    icon: Zap,
-    titleKey: "fast.title",
-    descKey: "fast.description",
-    stat: { value: 2, suffix: "min" },
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-    gradient: { from: "#F59E0B", to: "#F97316" },
+    titleKey: "Multi-Scale Mastery",
+    descKey: "Native support for cinematic 2.35:1 wide and mobile 9:16 vertical outputs.",
   },
   {
     icon: Shield,
-    titleKey: "secure.title",
-    descKey: "secure.description",
-    stat: { value: 100, suffix: "%" },
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-    gradient: { from: "#22C55E", to: "#10B981" },
+    titleKey: "Prompt-Sanity Engine",
+    descKey: "Automatic negative prompt injection to ensure anatomically correct generations.",
   },
   {
     icon: Clock,
-    titleKey: "realtime.title",
-    descKey: "realtime.description",
-    stat: { value: 24, suffix: "/7" },
-    color: "text-indigo-500",
-    bgColor: "bg-indigo-500/10",
-    gradient: { from: "#6366F1", to: "#818CF8" },
+    titleKey: "Hyper-Parallel Render",
+    descKey: "Distributed compute infrastructure providing 300% faster generation speeds.",
+  },
+  {
+    icon: Zap,
+    titleKey: "Sovereign Privacy",
+    descKey: "End-to-end encryption for all prompts and high-fidelity video assets.",
   },
 ];
 
@@ -84,203 +41,60 @@ export function FeaturesSection() {
   const t = useTranslations("Features");
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-background" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent" />
-      </div>
-
+    <section className="relative py-24 overflow-hidden bg-black font-plex-mono border-b border-white/5">
       <div className="container mx-auto px-4">
-        {/* 区域标题 */}
-        <BlurFade inView>
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
-            >
-              {t("title")}
-              <span className="block bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mt-2">
-                {t("subtitle")}
-              </span>
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-lg text-muted-foreground max-w-2xl mx-auto"
-            >
-              {t("description")}
-            </motion.p>
+        {/* Header - Industrial Alignment */}
+        <div className="mb-20 grid grid-cols-1 md:grid-cols-2 items-end gap-8">
+          <div>
+            <div className="text-[10px] tracking-[0.3em] text-white/20 lowercase mb-4">
+              [ technical specifications ]
+            </div>
+            <h2 className="text-[24px] md:text-[36px] font-light text-white leading-tight lowercase">
+              the engine behind <br />
+              <span style={{ color: "rgba(255,255,255,0.7)" }}>impossible visuals.</span>
+            </h2>
           </div>
-        </BlurFade>
+          <p className="text-[11px] text-white/35 max-w-sm ml-auto text-left md:text-right leading-relaxed lowercase">
+            we don't just generate pixels. we simulate the physics of light and the rhythm of life using seedance 2.0.
+          </p>
+        </div>
 
-        {/* Bento Grid - 主要特性 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {features.map((feature, index) => {
+        {/* 6-Column Matrix Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 border-l border-t border-white/10">
+          {allFeatures.map((feature, index) => {
             const Icon = feature.icon;
-
             return (
-              <BlurFade
-                key={feature.titleKey}
-                delay={index * 0.1}
-                inView
+              <motion.div
+                key={index}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group p-6 border-r border-b border-white/10 hover:bg-white/[0.02] transition-colors"
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="h-full"
-                >
-                  <MagicCard
-                    className="h-full rounded-2xl border border-border bg-card dark:bg-black/40 backdrop-blur-xl"
-                    gradientFrom={feature.gradient.from}
-                    gradientTo={feature.gradient.to}
-                    gradientColor={feature.gradient.from}
-                    gradientSize={250}
-                    gradientOpacity={0.15}
-                  >
-                    <div className="relative p-6 md:p-8 h-full flex flex-col min-h-[280px]">
-
-                      {/* 图标 */}
-                      <div className="flex items-start gap-4 justify-between mb-6">
-                        <motion.div
-                          whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 0.4 }}
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
-                          style={{
-                            background: `linear-gradient(135deg, ${feature.gradient.from}, ${feature.gradient.to})`,
-                          }}
-                        >
-                          <Icon className="h-7 w-7 text-white" />
-                        </motion.div>
-
-                        {feature.featured && (
-                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
-                            Popular
-                          </span>
-                        )}
-                      </div>
-
-                      {/* 内容 */}
-                      <div className="flex-1 flex flex-col">
-                        <h3 className="text-xl md:text-2xl font-bold mb-3 line-clamp-1">
-                          {t(feature.titleKey)}
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed line-clamp-2">
-                          {t(feature.descKey)}
-                        </p>
-                      </div>
-
-                      {/* 统计数据 */}
-                      {feature.stat && (
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
-                          <span className="text-sm text-muted-foreground">
-                            {t(feature.stat.labelKey)}
-                          </span>
-                          <span className="text-2xl font-bold tabular-nums">
-                            <NumberTicker value={feature.stat.value} />
-                            <span className="text-muted-foreground text-base ml-0.5">
-                              {feature.stat.suffix}
-                            </span>
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </MagicCard>
-                </motion.div>
-              </BlurFade>
+                <div className="mb-6 opacity-30 group-hover:opacity-100 transition-opacity">
+                   <Icon className="h-5 w-5 text-white" strokeWidth={1} />
+                </div>
+                <h3 className="text-[11px] font-plex-mono text-white/70 mb-3 tracking-[0.05em] uppercase">
+                  {feature.titleKey}
+                </h3>
+                <p className="text-[10px] text-white/30 leading-relaxed tracking-[0.02em] lowercase">
+                  {feature.descKey}
+                </p>
+              </motion.div>
             );
           })}
         </div>
 
-        {/* 核心优势 - 三列网格 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {benefits.map((benefit, index) => {
-            const Icon = benefit.icon;
-            return (
-              <BlurFade key={benefit.titleKey} delay={0.3 + index * 0.1} inView>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  whileHover={{ y: -4 }}
-                  className="h-full"
-                >
-                  <MagicCard
-                    className="h-full rounded-2xl border border-border bg-card dark:bg-black/40 backdrop-blur-xl"
-                    gradientFrom={benefit.gradient.from}
-                    gradientTo={benefit.gradient.to}
-                    gradientColor={benefit.gradient.from}
-                    gradientSize={180}
-                    gradientOpacity={0.12}
-                  >
-                    <div className="p-6 h-full flex flex-col">
-                      {/* 图标 + 数据 */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div
-                          className={cn(
-                            "w-11 h-11 rounded-xl flex items-center justify-center",
-                            benefit.bgColor
-                          )}
-                        >
-                          <Icon className={cn("h-5 w-5", benefit.color)} />
-                        </div>
-                        <span className="text-2xl font-bold tabular-nums">
-                          <NumberTicker value={benefit.stat.value} delay={0.3} />
-                          <span className="text-sm text-muted-foreground ml-0.5">
-                            {benefit.stat.suffix}
-                          </span>
-                        </span>
-                      </div>
-
-                      {/* 标题 */}
-                      <h4 className="text-lg font-semibold mb-1.5">
-                        {t(benefit.titleKey)}
-                      </h4>
-
-                      {/* 描述 */}
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {t(benefit.descKey)}
-                      </p>
-                    </div>
-                  </MagicCard>
-                </motion.div>
-              </BlurFade>
-            );
-          })}
+        {/* Verification Strip */}
+        <div className="mt-20 flex flex-wrap justify-between items-center gap-8 opacity-20 filter grayscale">
+          <span className="text-[10px] tracking-[0.2em] uppercase font-light">sora-2 compliant</span>
+          <span className="text-[10px] tracking-[0.2em] uppercase font-light">veo 3.1 architecture</span>
+          <span className="text-[10px] tracking-[0.2em] uppercase font-light">seedance native</span>
+          <span className="text-[10px] tracking-[0.2em] uppercase font-light">zero-knowledge private</span>
         </div>
-
-        {/* 底部 CTA */}
-        <BlurFade delay={0.6} inView>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-16 flex justify-center"
-          >
-            <LocaleLink href="/#generator">
-              <ShimmerButton
-                shimmerColor="#ffffff"
-                shimmerSize="0.05em"
-                shimmerDuration="3s"
-                borderRadius="100px"
-                background="oklch(from var(--primary) l c h)"
-                className="px-8 py-3 text-base font-medium shadow-lg shadow-primary/25"
-              >
-                {t("bottomCTA.button")}
-              </ShimmerButton>
-            </LocaleLink>
-          </motion.div>
-        </BlurFade>
       </div>
     </section>
   );
 }
+

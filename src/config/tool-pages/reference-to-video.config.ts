@@ -26,21 +26,21 @@ export const referenceToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "seedance-1.5-pro",
-      duration: 5,
+      model: "seedance-2.0",
+      duration: 10,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["seedance-1.5-pro"],
-      default: "seedance-1.5-pro",
+      available: ["seedance-2.0", "sora-2", "wan2.6", "veo-3.1", "seedance-1.5-pro"],
+      default: "seedance-2.0",
     },
 
     features: {
-      showImageUpload: true, // 用于上传参考视频帧
+      showImageUpload: true, // Used for uploading reference video frames
       showPromptInput: true,
-      showModeSelector: false,
+      showModeSelector: true,
     },
 
     promptPlaceholder: "Describe how you want to transform the video... e.g., 'Change to anime style, add snow effect'",

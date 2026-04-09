@@ -18,7 +18,7 @@ export function ToolLayoutContent({
   const { mobileMenuOpen, setMobileMenuOpen } = useMobileMenu();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black font-plex-mono">
       <HeaderSimple
         user={user}
         lang={lang}
@@ -26,7 +26,7 @@ export function ToolLayoutContent({
         onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
 
-      <div className="flex h-[calc(100vh-64px)]">
+      <div className="flex h-[calc(100vh-56px)]">
         <Sidebar
           lang={lang}
           mobileOpen={mobileMenuOpen}

@@ -25,7 +25,7 @@ export default async function DashboardLayout({
   const user = await requireAuth(`/${locale}/login`);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black font-plex-mono">
       <HeaderSimple
         user={{
           name: user.name,
@@ -35,13 +35,13 @@ export default async function DashboardLayout({
         lang={locale}
       />
 
-      <div className="flex h-[calc(100vh-64px)]">
-        {/* Left Sidebar - Fixed 200px */}
+      <div className="flex h-[calc(100vh-56px)]">
+        {/* Left Sidebar */}
         <Sidebar lang={locale} />
 
-        {/* Main Content Area - Flex */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-6">{children}</div>
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto bg-black">
+          <div className="p-8">{children}</div>
         </main>
       </div>
 

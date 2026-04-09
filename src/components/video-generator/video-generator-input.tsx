@@ -47,10 +47,14 @@ import {
   Sparkles,
   ZoomIn,
   Loader2,
-  MoreHorizontal,
   Volume2,
+  Box,
+  User,
+  MoreHorizontal,
 } from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
 import { cn } from "@/components/ui";
+import { usePromptStore } from "@/store/use-prompt-store";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import {
   DropdownMenu,
@@ -136,6 +140,11 @@ export function VideoGeneratorInput({
   // Validation
   validatePrompt,
   validateImages,
+
+  // UI Visibility Controls
+  hideModelSelector = false,
+  hideModeSelector = false,
+  hideGenerationTypeSwitch = false,
 }: VideoGeneratorInputProps) {
   // Merge user config with defaults
   const config = useMemo(() => mergeConfig(userConfig), [userConfig]);
@@ -209,6 +218,34 @@ export function VideoGeneratorInput({
   const [selectedStyle, setSelectedStyle] = useState<ImageStyle | null>(
     () => imageStyles.find((s) => s.id === defaults.imageStyle) ?? imageStyles[0] ?? null
   );
+
+  // External store synchronization
+  const { prompt: storePrompt, timestamp: storeTimestamp } = usePromptStore();
+  const bounceControls = useAnimation();
+
+  useEffect(() => {
+    if (storePrompt && storeTimestamp > 0) {
+      setPrompt(storePrompt);
+      onPromptChange?.(storePrompt);
+      onChange?.({ prompt: storePrompt });
+      
+      // Upward bounce animation (联动靠向上回弹)
+      bounceControls.start({
+        y: [0, -20, 0],
+        transition: { 
+          duration: 0.6, 
+          times: [0, 0.4, 1],
+          ease: "easeOut" 
+        }
+      });
+
+      // Scroll to generator if it's off-screen
+      const element = document.getElementById("video-generator-input");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [storePrompt, storeTimestamp, bounceControls]);
 
   // Prompt templates state
   const [visibleTemplates, setVisibleTemplates] = useState<PromptTemplate[]>(
@@ -469,6 +506,12 @@ export function VideoGeneratorInput({
   const calculatedCredits = useMemo(() => {
     const resolvedResolution =
       generationType === "video" && showResolutionControl ? resolution : undefined;
+    
+    // Check for video input for pricing logic
+    const hasVideoInput = uploadedImages.some(img => img.isVideo);
+    // Dummy duration for now, or could be extracted from file metadata
+    const inputVideoDuration = hasVideoInput ? 5 : 0; 
+
     if (calculateCredits && currentModel) {
       return calculateCredits({
         type: generationType,
@@ -476,6 +519,8 @@ export function VideoGeneratorInput({
         outputNumber: currentOutputNumber,
         duration: generationType === "video" ? duration : undefined,
         resolution: resolvedResolution,
+        hasVideoInput,
+        inputVideoDuration,
       });
     }
     if (estimatedCredits !== undefined) {
@@ -490,6 +535,8 @@ export function VideoGeneratorInput({
         resolution: resolvedResolution,
         outputNumber: currentOutputNumber,
         generateAudio: generateAudio,
+        hasVideoInput,
+        inputVideoDuration,
       });
     }
 
@@ -508,6 +555,7 @@ export function VideoGeneratorInput({
     resolution,
     generateAudio,
     showResolutionControl,
+    uploadedImages,
   ]);
 
   // Helper to check if icon is a URL
@@ -563,6 +611,13 @@ export function VideoGeneratorInput({
         { id: "start", label: texts.start ?? "Start", subLabel: "", required: true },
         { id: "end", label: texts.end ?? "End", subLabel: texts.optional ?? "(Opt)", required: false },
       ];
+    } else if (mode?.uploadType === "multi-reference") {
+      return [
+        { id: "video1", label: "Video 1", subLabel: "", required: false },
+        { id: "image1", label: "Image 1", subLabel: texts.optional ?? "(Opt)", required: false },
+        { id: "image2", label: "Image 2", subLabel: texts.optional ?? "(Opt)", required: false },
+        { id: "image3", label: "Image 3", subLabel: texts.optional ?? "(Opt)", required: false },
+      ];
     } else if (mode?.uploadType === "characters") {
       return [
         { id: "char1", label: "Image1", subLabel: "", required: true },
@@ -599,11 +654,14 @@ export function VideoGeneratorInput({
   // Check if current model requires image upload
   const modelRequiresImage = useMemo(() => {
     if (generationType === "video" && selectedVideoModel) {
+      // Reference mode (Video Edit / Extend) is optional for Seedance 2.0
+      if (selectedVideoMode?.id === "reference-to-video") return false;
+      
       const model = selectedVideoModel as VideoModel;
       return model.requiresImage === true || (model.minImages && model.minImages > 0);
     }
     return false;
-  }, [generationType, selectedVideoModel]);
+  }, [generationType, selectedVideoModel, selectedVideoMode]);
 
   // Get minimum required images for current model
   const minRequiredImages = useMemo(() => {
@@ -629,19 +687,22 @@ export function VideoGeneratorInput({
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const slot = currentUploadSlot.current || "default";
     if (file) {
+      const isVideo = file.type.startsWith("video/");
       const reader = new FileReader();
       reader.onloadend = () => {
         const newImage: UploadedImage = {
           file,
           preview: reader.result as string,
-          slot: currentUploadSlot.current,
+          slot,
+          isVideo,
         };
 
         setUploadedImages((prev) => {
-          const filtered = prev.filter((img) => img.slot !== currentUploadSlot.current);
+          const filtered = prev.filter((img) => img.slot !== slot);
           const updated = [...filtered, newImage];
-          onImageUpload?.([file], currentUploadSlot.current);
+          onImageUpload?.([file], slot);
           return updated;
         });
       };
@@ -701,6 +762,16 @@ export function VideoGeneratorInput({
       style: generationType === "image" && selectedStyle ? selectedStyle.id : undefined,
       generateAudio: modelSupportsAudio ? generateAudio : undefined,
       estimatedCredits: calculatedCredits,
+      
+      // Seedance 2.0 specialized mapping
+      firstFrameUrl: uploadedImages.find(img => img.slot === "start")?.preview,
+      lastFrameUrl: uploadedImages.find(img => img.slot === "end")?.preview,
+      referenceImageUrls: uploadedImages
+        .filter(img => img.slot.startsWith("ref") || img.slot.startsWith("image"))
+        .map(img => img.preview),
+      referenceVideoUrls: uploadedImages
+        .filter(img => img.slot.startsWith("video"))
+        .map(img => img.preview),
     };
 
     onSubmit?.(data);
@@ -821,18 +892,35 @@ export function VideoGeneratorInput({
     }
   };
 
+  const handleAssetClick = (slotId: string) => {
+    // Mapping internal slot IDs to user-friendly @ tags
+    const tagMap: Record<string, string> = {
+      video1: "@Video1",
+      image1: "@Image1",
+      audio1: "@Audio1",
+      ref1: "@Reference1",
+      start: "@StartFrame",
+      end: "@EndFrame",
+    };
+    
+    const tag = tagMap[slotId] || `@${slotId}`;
+    const newPrompt = prompt.trim() ? `${prompt} ${tag}` : tag;
+    setPrompt(newPrompt);
+    onPromptChange?.(newPrompt);
+  };
+
   const getModeIcon = (iconType: string) => {
     switch (iconType) {
       case "text":
-        return "⌘";
+        return <span className="text-[10px] font-bold">⌘</span>;
       case "image":
-        return "🖼";
+        return <ImageIcon className="w-3.5 h-3.5" />;
       case "reference":
-        return "👤";
+        return <User className="w-3.5 h-3.5" />;
       case "frames":
-        return "🎞";
+        return <Box className="w-3.5 h-3.5" />;
       default:
-        return "⌘";
+        return <Send className="w-3.5 h-3.5" />;
     }
   };
 
@@ -856,66 +944,100 @@ export function VideoGeneratorInput({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         onChange={handleImageUpload}
         className="hidden"
       />
 
       {/* Main Input Card */}
-      <div className="relative rounded-2xl bg-card overflow-hidden border border-transparent dark:border-white/10">
+      <motion.div 
+        id="video-generator-input"
+        animate={bounceControls}
+        className="relative rounded-2xl bg-card overflow-hidden border border-transparent dark:border-white/10"
+      >
         <BorderBeam duration={8} size={100} colorFrom="oklch(from var(--primary) l c h)" colorTo="oklch(from var(--primary) l c h / 0.2)" />
         {/* Input Area */}
         <div className="p-4 min-h-[140px] flex flex-col">
           <div className="flex gap-3 flex-1">
             {/* Upload Area */}
-            <div className="flex-shrink-0 flex gap-2">
+            <div className={cn(
+              "flex-shrink-0 flex gap-2 overflow-x-auto no-scrollbar",
+              isMultiUpload ? "max-w-[180px] md:max-w-xs" : "w-14"
+            )}>
               {isMultiUpload ? (
-                uploadSlots.map((slot) => {
-                  const image = getImageForSlot(slot.id);
-                  return (
-                    <div key={slot.id} className="flex flex-col items-center gap-1">
-                      {image ? (
-                        <div className="relative group">
-                          {/* Delete button - outside the frame */}
-                          <button
-                            onClick={() => handleRemoveImage(slot.id)}
-                            className="absolute -top-1.5 -right-1.5 z-10 p-1 rounded-full bg-muted hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-3 h-3 text-foreground" />
-                          </button>
-                          {/* Image frame */}
-                          <div className="w-14 h-[75px] rounded-lg p-1 bg-muted/50 border border-border">
-                            <div className="relative w-full h-full rounded overflow-hidden">
-                              <img
-                                src={image.preview}
-                                alt={slot.label}
-                                className="w-full h-full object-cover"
-                              />
-                              {/* Zoom button - centered on hover */}
-                              <button
-                                onClick={() => setPreviewImage(image.preview)}
-                                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <ZoomIn className="w-4 h-4 text-foreground" />
-                              </button>
+                <div className="flex gap-2">
+                  {uploadSlots.map((slot) => {
+                    const image = getImageForSlot(slot.id);
+                    const isSpecial = slot.id === "start" || slot.id === "end";
+                    
+                    return (
+                      <div key={slot.id} className="flex flex-col items-center gap-1.5 shrink-0">
+                        {image ? (
+                          <div className="relative group">
+                            {/* Delete button - outside the frame */}
+                            <button
+                              onClick={() => handleRemoveImage(slot.id)}
+                              className="absolute -top-1.5 -right-1.5 z-10 p-1 rounded-full bg-background border border-border hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3 text-foreground" />
+                            </button>
+                            {/* Image frame */}
+                            <div className={cn(
+                              "w-14 h-[75px] rounded-xl p-1 bg-card/40 backdrop-blur-xl border transition-colors",
+                              isSpecial ? "border-primary/20 bg-primary/5" : "border-white/10"
+                            )}>
+                              <div className="relative w-full h-full rounded-lg overflow-hidden">
+                                {image.isVideo ? (
+                                  <video
+                                    src={image.preview}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <img
+                                    src={image.preview}
+                                    alt={slot.label}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                                {/* Type Badge */}
+                                <div className="absolute top-0.5 left-0.5 px-1 py-0.25 rounded-[2px] bg-black/60 text-[7px] text-white font-bold tracking-tighter uppercase">
+                                  {image.isVideo ? "Vid" : image.preview.startsWith("data:audio") ? "Aud" : "Img"}
+                                </div>
+                                {/* Zoom button - centered on hover */}
+                                <button
+                                  onClick={() => setPreviewImage(image.preview)}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  {image.isVideo ? <Video className="w-4 h-4 text-foreground" /> : <ZoomIn className="w-4 h-4 text-foreground" />}
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleUploadClick(slot.id)}
-                          className="w-14 h-[75px] rounded-lg border-2 border-dashed border-border hover:border-muted-foreground transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
+                        ) : (
+                          <button
+                            onClick={() => handleUploadClick(slot.id)}
+                            className={cn(
+                              "w-14 h-[75px] rounded-xl border-2 border-dashed transition-all flex items-center justify-center text-muted-foreground hover:text-foreground",
+                              isSpecial ? "border-primary/30 hover:border-primary bg-primary/5" : "border-white/10 hover:border-white/20 bg-white/5"
+                            )}
+                          >
+                            <Plus className="w-5 h-5 opacity-40" />
+                          </button>
+                        )}
+                        <div 
+                          className={cn(
+                            "text-[9px] font-plex-mono uppercase tracking-widest text-center w-14 cursor-pointer hover:text-primary transition-colors",
+                            isSpecial ? "text-primary/60" : "text-white/30"
+                          )}
+                          onClick={() => handleAssetClick(slot.id)}
                         >
-                          <Plus className="w-5 h-5" />
-                        </button>
-                      )}
-                      <div className="text-[10px] text-muted-foreground text-center w-14">
-                        <div>{slot.label}</div>
-                        {slot.subLabel && <div>{slot.subLabel}</div>}
+                          <div>{slot.label}</div>
+                          {slot.subLabel && <div className="opacity-50 text-[8px]">{slot.subLabel}</div>}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="flex flex-col items-center gap-1">
                   {getImageForSlot("default") ? (
@@ -1000,8 +1122,8 @@ export function VideoGeneratorInput({
         <div className="px-4 pb-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Generation Type Selector - only show when both types available */}
-              {showGenerationTypeSwitch && (
+              {/* Generation Type Switch */}
+              {!hideGenerationTypeSwitch && showGenerationTypeSwitch && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm">
@@ -1045,13 +1167,13 @@ export function VideoGeneratorInput({
               )}
 
               {/* Mode Selector */}
-              {currentModes.length > 0 && currentMode && (
+              {!hideModeSelector && currentModes.length > 0 && currentMode && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-foreground">
-                      <span className="text-muted-foreground">{getModeIcon(currentMode.icon)}</span>
-                      <span>{currentMode.name}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    <button className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 transition-all text-xs text-white/90">
+                      <span className="text-white/40">{getModeIcon(currentMode.icon)}</span>
+                      <span className="font-medium tracking-wide">{currentMode.name}</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-white/20" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-popover border-border">
@@ -1073,16 +1195,15 @@ export function VideoGeneratorInput({
               )}
 
               {/* Model Selector */}
-              {currentModel && (
+              {!hideModelSelector && currentModel && (
                 <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-foreground">
-                      {renderModelIcon(currentModel, "sm")}
-                      <span>{currentModel.name}</span>
-                      {currentModel.isPro && (
-                        <span className="text-[10px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400">PRO</span>
-                      )}
-                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    <button className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 transition-all text-xs text-white/90">
+                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-black/40 border border-white/10 overflow-hidden">
+                        {renderModelIcon(currentModel, "sm")}
+                      </div>
+                      <span className="font-medium tracking-wide">{currentModel.name}</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-white/20" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-popover border-border w-80 max-h-[400px] overflow-y-scroll custom-scrollbar">
@@ -1176,35 +1297,39 @@ export function VideoGeneratorInput({
                 </Dialog>
               )}
 
-              {/* Quick Settings */}
+              {/* Quick Settings (Combined Pill) */}
               <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary hover:bg-accent transition-colors text-sm text-muted-foreground hover:text-foreground">
-                    <div
-                      className={cn(
-                        "border border-current rounded-sm",
-                        currentAspectRatio === "16:9" && "w-4 h-2.5",
-                        currentAspectRatio === "9:16" && "w-2.5 h-4",
-                        currentAspectRatio === "1:1" && "w-3 h-3",
-                        currentAspectRatio === "4:3" && "w-3.5 h-2.5",
-                        currentAspectRatio === "3:4" && "w-2.5 h-3.5",
-                        currentAspectRatio === "3:2" && "w-3.5 h-2.5",
-                        currentAspectRatio === "2:3" && "w-2.5 h-3.5",
-                        currentAspectRatio === "21:9" && "w-5 h-2"
-                      )}
-                    />
-                    <span>{currentAspectRatio}</span>
-                    {generationType === "video" && showDurationControl && (
-                      <>
-                        <span className="text-muted-foreground/60 mx-1">|</span>
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{duration}</span>
-                      </>
+                  <button className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 transition-all text-xs text-white/60">
+                    <div className="flex items-center gap-1.5 px-0.5">
+                      <div
+                        className={cn(
+                          "border border-current rounded-[1px] opacity-40",
+                          currentAspectRatio === "16:9" && "w-3.5 h-2",
+                          currentAspectRatio === "9:16" && "w-2 h-3.5",
+                          currentAspectRatio === "1:1" && "w-2.5 h-2.5"
+                        )}
+                      />
+                      <span className="font-plex-mono tracking-wider">{currentAspectRatio}</span>
+                    </div>
+                    
+                    {generationType === "video" && (showDurationControl || showResolutionControl) && (
+                      <span className="w-[1px] h-3 bg-white/10 mx-0.5" />
                     )}
+
+                    {generationType === "video" && showDurationControl && (
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 opacity-40" />
+                        <span className="font-plex-mono tracking-wider">{duration}</span>
+                      </div>
+                    )}
+
                     {generationType === "video" && showResolutionControl && (
                       <>
-                        <span className="text-muted-foreground/60 mx-1">|</span>
-                        <span>{resolution}</span>
+                        <span className="w-[1px] h-3 bg-white/10 mx-0.5" />
+                        <div className="flex items-center gap-1.5">
+                           <span className="font-plex-mono tracking-wider">{resolution}</span>
+                        </div>
                       </>
                     )}
                   </button>
@@ -1304,7 +1429,7 @@ export function VideoGeneratorInput({
               {/* Advanced Settings (Output Number, Generate Audio) */}
               <Popover open={isAdvancedSettingsOpen} onOpenChange={setIsAdvancedSettingsOpen}>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                  <button className="flex items-center justify-center w-9 h-9 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 transition-all text-white/40 hover:text-white/80">
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
                 </PopoverTrigger>
@@ -1342,32 +1467,52 @@ export function VideoGeneratorInput({
 
                   {/* Generate Audio - only show when model supports it */}
                   {modelSupportsAudio && (
-                    <div>
+                    <div className="space-y-4 pt-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Volume2 className="w-4 h-4 text-muted-foreground" />
+                          <Volume2 className="w-4 h-4 text-white/40" />
                           <div>
-                            <div className="text-sm text-foreground">Generate Audio</div>
-                            <div className="text-xs text-muted-foreground">
-                              Add natural-sounding audio
+                            <div className="text-[11px] font-plex-mono text-white/80 lowercase">Audio</div>
+                            <div className="text-[9px] text-white/30 lowercase">
+                              Enable sound generation
                             </div>
                           </div>
                         </div>
                         <button
                           onClick={() => setGenerateAudio(!generateAudio)}
                           className={cn(
-                            "relative w-11 h-6 rounded-full transition-colors",
-                            generateAudio ? "bg-red-500" : "bg-muted"
+                            "relative w-8 h-4 rounded-full transition-colors border border-white/10",
+                            generateAudio ? "bg-white/20" : "bg-white/5"
                           )}
                         >
                           <span
                             className={cn(
-                              "absolute top-1 w-4 h-4 rounded-full bg-white transition-transform",
-                              generateAudio ? "left-6" : "left-1"
+                              "absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white transition-transform",
+                              generateAudio ? "left-4.5" : "left-0.5"
                             )}
                           />
                         </button>
                       </div>
+
+                      {/* Seedance 2.0 Return Last Frame */}
+                      {selectedVideoModel?.id === "seedance-2.0" && (
+                        <div className="flex items-center justify-between opacity-80">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-white/40" />
+                            <div>
+                              <div className="text-[11px] font-plex-mono text-white/80 lowercase">Return Last Frame</div>
+                              <div className="text-[9px] text-white/30 lowercase">
+                                Perfect for seamless loops
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            className="relative w-8 h-4 rounded-full transition-colors border border-white/10 bg-white/5"
+                          >
+                            <span className="absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white/20 left-0.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </PopoverContent>
@@ -1398,7 +1543,7 @@ export function VideoGeneratorInput({
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Prompt Suggestions */}
       {promptTemplates.length > 0 && (

@@ -182,8 +182,8 @@ export function DarkPricing({
   return (
     <section className="flex flex-col items-center text-center py-6 md:py-6">
       {/* Tab 切换 */}
-      <div className="mb-6 mx-auto flex justify-center">
-        <div className="inline-flex rounded-lg bg-muted p-1">
+      <div className="mb-6 mx-auto flex justify-center font-plex-mono lowercase text-[11px] tracking-widest">
+        <div className="inline-flex rounded-none border border-white/20 p-1 bg-transparent">
           <TabButton
             active={activeTab === "onetime"}
             onClick={() => setActiveTab("onetime")}
@@ -270,11 +270,11 @@ function TabButton({ active, children, onClick, showBadge }: TabButtonProps) {
     <button
       onClick={onClick}
       className={cn(
-        "relative rounded-md px-6 py-2.5 text-sm font-semibold transition-all duration-200",
+        "relative px-6 py-2 transition-all duration-200 uppercase tracking-widest border border-transparent",
         !showBadge && "pr-6",
         active
-          ? "bg-primary text-primary-foreground shadow-md scale-105"
-          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          ? "border-white/40 text-white"
+          : "text-white/40 hover:text-white/80"
       )}
     >
       {children}
@@ -322,133 +322,97 @@ function PricingCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-xl border transition-all duration-200",
+        "relative flex flex-col font-plex-mono border transition-all duration-500",
         isRecommended
-          ? "border-primary shadow-lg z-10 bg-secondary/5"
-          : "border-border bg-card hover:bg-muted/10"
+          ? "border-white/30 z-10 bg-white/[0.02]"
+          : "border-white/10 bg-transparent hover:border-white/20"
       )}
     >
-      {isRecommended && (
-        <div className="absolute top-0 right-0 left-0 h-1 bg-primary" />
-      )}
       <div className={cn(
-        "min-h-[150px] items-start space-y-4 p-6",
-        isRecommended ? "bg-secondary/40" : "bg-secondary/20"
+        "min-h-[140px] items-start space-y-4 p-8 border-b border-white/10"
       )}>
-        <p className="font-urban flex text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          {product.displayName}
-        </p>
-
-        <div className="flex flex-row">
-          <div className="flex items-end gap-2">
-            <div className="flex text-left text-3xl font-semibold leading-6">
-              {formatPrice(product.price.amount)}
-            </div>
-            <div className="-mb-1 ml-2 text-left text-sm font-medium text-muted-foreground">
-              {product.billingPeriod ? (product.billingPeriod === "year" ? t("per_year") : t("per_month")) : ""}
-            </div>
-          </div>
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-normal lowercase tracking-[0.2em] text-white/30">
+            [ {product.displayName} ]
+          </p>
+          {isRecommended && (
+            <span className="text-[8px] px-1.5 py-0.5 border border-white/20 text-white/50 uppercase tracking-widest">
+              preferred
+            </span>
+          )}
         </div>
 
-        {/* 显示积分数 */}
-        {product.credits && (
-          <div className="text-left text-sm text-muted-foreground">
-            {dictCredits.title || "Credits"}: {product.credits.toLocaleString()}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-baseline gap-2">
+            <div className="text-3xl font-light text-white tracking-tighter">
+              {formatPrice(product.price.amount)}
+            </div>
+            <div className="text-[10px] font-light text-white/30 lowercase tracking-[0.1em]">
+              {product.billingPeriod ? (product.billingPeriod === "year" ? t("per_year") : t("per_month")) : "one-time"}
+            </div>
           </div>
-        )}
-
-        {product.displayDescription ? (
-          <div className="text-left text-sm text-muted-foreground">
-            {product.displayDescription}
-          </div>
-        ) : null}
+          {product.credits && (
+            <div className="text-[10px] text-white/40 tracking-[0.05em] lowercase">
+              — {product.credits.toLocaleString()} production credits
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex h-full flex-col justify-between gap-10 p-6">
-        <ul className="space-y-2 text-left text-sm font-medium leading-normal">
-          {features.map((feature, idx) => (
-            <li className="flex items-start" key={idx}>
-              {feature.included ? (
-                <Icons.Check className="mr-3 h-5 w-5 shrink-0 text-primary" />
-              ) : (
-                <Icons.Close className="mr-3 h-5 w-5 shrink-0 text-destructive" />
-              )}
-              <p className={cn(feature.included ? "text-foreground" : "text-muted-foreground")}>
+      <div className="flex-1 flex flex-col justify-between gap-12 p-8">
+        <ul className="space-y-4">
+          {features.filter(f => f.included).map((feature, idx) => (
+            <li className="flex items-start gap-4" key={idx}>
+              <Icons.Check className="mt-0.5 h-3 w-3 shrink-0 text-white/40" strokeWidth={1.5} />
+              <p className="text-[10px] text-white/60 lowercase tracking-[0.05em] leading-relaxed">
                 {feature.text}
               </p>
             </li>
           ))}
         </ul>
 
-        {userId ? (
-          isCurrent ? (
+        <div className="space-y-2">
+          {userId ? (
+            isCurrent ? (
+              <button
+                onClick={onPortal}
+                className="w-full py-3 text-[10px] font-light tracking-[0.2em] lowercase border border-white/20 text-white/60 hover:border-white/60 hover:text-white transition-all"
+              >
+                {dictPrice.manage_subscription}
+              </button>
+            ) : (
+              <button
+                disabled={isPending || isRestricted}
+                onClick={() => onCheckout(product)}
+                className={cn(
+                  "w-full py-3 text-[10px] font-light tracking-[0.2em] lowercase border transition-all",
+                  isRecommended
+                    ? "border-white/60 text-white bg-white/5"
+                    : "border-white/20 text-white/50 hover:border-white/60 hover:text-white"
+                )}
+              >
+                {isPending ? "processing..." : isRestricted ? "subscribers only" : (product.billingPeriod ? dictPrice.upgrade : buyCreditsLabel)}
+              </button>
+            )
+          ) : (
             <button
-              onClick={onPortal}
+              onClick={signInModal.onOpen}
               className={cn(
-                "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
-                "hover:opacity-90",
+                "w-full py-3 text-[10px] font-light tracking-[0.2em] lowercase border transition-all",
                 isRecommended
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
+                  ? "border-white/60 text-white bg-white/5"
+                  : "border-white/20 text-white/50 hover:border-white/60 hover:text-white"
               )}
             >
-              {dictPrice.manage_subscription}
+              start creating
             </button>
-          ) : (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="w-full">
-                    <button
-                      disabled={isPending || isRestricted}
-                      onClick={() => onCheckout(product)}
-                      className={cn(
-                        "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
-                        "disabled:opacity-50 disabled:cursor-not-allowed",
-                        "hover:opacity-90",
-                        isRecommended
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
-                      )}
-                    >
-                      {isPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : isRestricted ? (
-                        "Subscribers Only"
-                      ) : product.billingPeriod ? (
-                        dictPrice.upgrade
-                      ) : (
-                        buyCreditsLabel
-                      )}
-                    </button>
-                  </span>
-                </TooltipTrigger>
-                {isRestricted && (
-                  <TooltipContent>
-                    <p>This pack is only available to active subscribers.</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          )
-        ) : (
-          <button
-            onClick={signInModal.onOpen}
-            className={cn(
-              "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
-              "hover:opacity-90",
-              isRecommended
-                ? "bg-primary text-primary-foreground"
-                : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
-            )}
-          >
-            {dictPrice.signup}
-          </button>
-        )}
+          )}
+          <p className="text-[8px] text-center text-white/20 tracking-[0.1em] lowercase py-2">
+            secure encryption • no long-term commitment required
+          </p>
+        </div>
       </div>
     </div>
   );
 }
+

@@ -15,8 +15,9 @@ interface Video {
   thumbnail_url?: string | null;
   created_at: string | Date;
   credits_used: number;
-  duration?: string;
-  resolution?: string;
+  duration?: string | null;
+  resolution?: string | null;
+  aspect_ratio?: string | null;
 }
 
 interface VideoCardProps {
@@ -78,18 +79,44 @@ function VideoThumbnail({ video }: { video: Video }) {
   const config = statusConfig[video.status as keyof typeof statusConfig] || statusConfig.PENDING;
   const StatusIcon = config.icon;
 
+  const aspectRatioMap: Record<string, string> = {
+    "16:9": "aspect-[16/9]",
+    "9:16": "aspect-[9/16] max-h-[500px]",
+    "1:1": "aspect-square",
+    "4:3": "aspect-[4/3]",
+    "3:4": "aspect-[3/4]",
+    "21:9": "aspect-[21/9]",
+  };
+
+  const dynamicAspectRatio = video.aspect_ratio ? aspectRatioMap[video.aspect_ratio] : "aspect-video";
+
   return (
     <div
-      className="relative aspect-video bg-zinc-900 overflow-hidden rounded-t-xl group/thumbnail"
+      className={cn(
+        "relative bg-black/90 overflow-hidden rounded-t-xl group/thumbnail transition-all duration-500 ease-in-out",
+        dynamicAspectRatio
+      )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      {/* Blurred Background (for vertical videos) */}
+      {(video.aspect_ratio === "9:16" || video.aspect_ratio === "3:4") && (
+        <div 
+          className="absolute inset-0 opacity-40 blur-2xl scale-125 saturate-150 pointer-events-none"
+          style={{ 
+            backgroundImage: video.thumbnail_url ? `url(${video.thumbnail_url})` : "none",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+      )}
+
       {/* Video or Image Preview */}
       {video.status === "COMPLETED" && video.video_url ? (
         <video
           ref={videoRef}
           src={video.video_url}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain relative z-10"
           muted
           loop
           playsInline
@@ -98,10 +125,10 @@ function VideoThumbnail({ video }: { video: Video }) {
         <img
           src={video.thumbnail_url}
           alt={video.prompt}
-          className="w-full h-full object-cover opacity-80"
+          className="w-full h-full object-contain relative z-10 opacity-80"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-zinc-900/50">
+        <div className="w-full h-full flex items-center justify-center bg-zinc-900/50 relative z-10">
           <div className="flex flex-col items-center gap-2">
             {StatusIcon && <StatusIcon className="w-8 h-8 text-zinc-600" />}
             <span className={cn("text-sm font-medium", config.color)}>

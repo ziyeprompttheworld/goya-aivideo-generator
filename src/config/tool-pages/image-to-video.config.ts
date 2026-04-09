@@ -27,21 +27,21 @@ export const imageToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "seedance-1.5-pro",
-      duration: 5,
+      model: "seedance-2.0",
+      duration: 10,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["seedance-1.5-pro", "seedance-1.0-pro-fast", "seedance-1.0-pro-quality"],
-      default: "seedance-1.5-pro",
+      available: ["seedance-2.0", "sora-2", "wan2.6", "veo-3.1", "seedance-1.5-pro"],
+      default: "seedance-2.0",
     },
 
     features: {
       showImageUpload: true,
       showPromptInput: true,
-      showModeSelector: false,
+      showModeSelector: true,
     },
 
     promptPlaceholder: "Describe the video you want to create from this image...",
@@ -94,6 +94,7 @@ export const imageToVideoConfig: ToolPageConfig = {
     ],
 
     supportedModels: [
+      { name: "Seedance 2.0", provider: "ByteDance", color: "#8b5cf6" },
       { name: "Seedance 1.5 Pro", provider: "ByteDance", color: "#10b981" },
       { name: "Seedance 1.0 Fast", provider: "ByteDance", color: "#34d399" },
       { name: "Seedance 1.0 Quality", provider: "ByteDance", color: "#059669" },

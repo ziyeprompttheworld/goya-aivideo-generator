@@ -208,33 +208,55 @@ export function ResultPanel({
             const isFailed = normalizedStatus === "failed";
             const isProcessing = normalizedStatus === "pending" || normalizedStatus === "generating" || normalizedStatus === "uploading";
 
+            const aspectRatioMap: Record<string, string> = {
+              "16:9": "aspect-[16/9]",
+              "9:16": "aspect-[9/16]",
+              "1:1": "aspect-square",
+              "4:3": "aspect-[4/3]",
+              "3:4": "aspect-[3/4]",
+              "21:9": "aspect-[21/9]",
+            };
+            const dynamicAspectRatio = video.aspectRatio ? aspectRatioMap[video.aspectRatio] : "aspect-video";
+
             return (
               <div
                 key={video.uuid}
                 className="rounded-xl border border-border bg-background/80 overflow-hidden flex flex-col"
               >
-                <div className="relative aspect-video bg-black">
+                <div className={cn("relative bg-black transition-all duration-500", dynamicAspectRatio)}>
+                  {/* Blurred Background for vertical videos */}
+                  {(video.aspectRatio === "9:16" || video.aspectRatio === "3:4") && (
+                    <div 
+                      className="absolute inset-0 opacity-40 blur-2xl scale-125 saturate-150 pointer-events-none"
+                      style={{ 
+                        backgroundImage: video.thumbnailUrl ? `url(${video.thumbnailUrl})` : "none",
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                    />
+                  )}
+
                   {videoSrc ? (
                     <video
                       src={videoSrc}
                       controls
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain relative z-10"
                       poster={video.thumbnailUrl || undefined}
                     />
                   ) : video.thumbnailUrl ? (
                     <img
                       src={video.thumbnailUrl}
                       alt={video.prompt}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain relative z-10 opacity-80"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center relative z-10">
                       <StatusIcon className={cn("h-10 w-10", isFailed ? "text-rose-500" : "text-muted-foreground")} />
                     </div>
                   )}
 
                   {/* Status badge overlay */}
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2 left-2 z-20">
                     <Badge className={config.labelColor} variant="outline">
                       <StatusIcon className="h-3 w-3 mr-1" />
                       {tStatus(config.labelKey as "status.completed")}

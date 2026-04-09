@@ -27,21 +27,21 @@ export const textToVideoConfig: ToolPageConfig = {
     uiMode: "compact",
 
     defaults: {
-      model: "seedance-1.5-pro",
-      duration: 5,
+      model: "seedance-2.0",
+      duration: 10,
       aspectRatio: "16:9",
       outputNumber: 1,
     },
 
     models: {
-      available: ["seedance-1.5-pro", "seedance-1.0-pro-fast", "seedance-1.0-pro-quality"],
-      default: "seedance-1.5-pro",
+      available: ["seedance-2.0", "sora-2", "wan2.6", "veo-3.1", "seedance-1.5-pro"],
+      default: "seedance-2.0",
     },
 
     features: {
       showImageUpload: false,
       showPromptInput: true,
-      showModeSelector: false,
+      showModeSelector: true,
     },
 
     promptPlaceholder: "Describe the video you want to create... e.g., 'A serene mountain landscape at sunset with birds flying'",

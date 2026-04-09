@@ -264,6 +264,22 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     enabled: true,
   },
 
+  /** Seedance 2.0 - Kie.ai */
+  "seedance-2.0": {
+    baseCredits: 0,
+    perSecond: 6, // 2.0 版本设为 6 积分/秒
+    qualityMultiplier: 2,
+    enabled: true,
+  },
+  
+  /** Seedance 2.0 CN - Volcengine Official */
+  "seedance-2.0-cn": {
+    baseCredits: 0,
+    perSecond: 6, 
+    qualityMultiplier: 2,
+    enabled: true,
+  },
+
   /** Seedance 1.0 Pro Fast - 快速生成（APImart） */
   "seedance-1.0-pro-fast": {
     baseCredits: 0,
@@ -280,26 +296,24 @@ export const VIDEO_MODEL_PRICING: Record<string, VideoModelPricing> = {
     enabled: true,
   },
 
-  /** Veo 3.1 Fast Lite - Google (暂时隐藏) */
+  /** Veo 3.1 Fast Lite - Google */
   "veo-3.1": {
-    baseCredits: 10,
+    baseCredits: 60, // Screenshot says 60+
     perSecond: 0,
-    enabled: false,
+    enabled: true,
   },
-
-  /** Sora 2 Lite - OpenAI (暂时隐藏) */
+  /** Sora 2 Lite - OpenAI */
   "sora-2": {
-    baseCredits: 2,
+    baseCredits: 10, // Screenshot says 10+
     perSecond: 0,
-    enabled: false,
+    enabled: true,
   },
-
-  /** Wan 2.6 (暂时隐藏) */
+  /** Wan 2.6 */
   "wan2.6": {
-    baseCredits: 25,
-    perSecond: 5,
+    baseCredits: 156, // Screenshot says 156+
+    perSecond: 0,
     qualityMultiplier: 1.67,
-    enabled: false,
+    enabled: true,
   },
 };
 

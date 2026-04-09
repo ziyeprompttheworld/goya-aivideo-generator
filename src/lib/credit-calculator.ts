@@ -18,6 +18,8 @@ export interface CreditCalculationParams {
   quality?: string; // "standard", "high"
   outputNumber: number;
   generateAudio?: boolean;
+  hasVideoInput?: boolean;
+  inputVideoDuration?: number; // seconds
 }
 
 // ============================================================================
@@ -149,6 +151,36 @@ function calculateSeedanceCredits(params: CreditCalculationParams): number {
   return Math.ceil(duration * perSecond) * params.outputNumber;
 }
 
+/**
+ * Seedance 2.0 积分计算 (New)
+ * 
+ * 逻辑:
+ * - 480P: 有视频 11.5 / 无视频 19 credits/s
+ * - 720P: 有视频 25 / 无视频 41 credits/s
+ * 
+ * 有视频公式: (input_duration + output_duration) * rate
+ * 无视频公式: output_duration * rate
+ */
+function calculateSeedance20Credits(params: CreditCalculationParams): number {
+  const outputDuration = parseDuration(params.duration) || 5;
+  const inputDuration = params.inputVideoDuration || 0;
+  const resolution = parseResolution(params.resolution);
+  const hasVideo = params.hasVideoInput ?? false;
+
+  let rate = 0;
+  if (resolution <= 480) {
+    rate = hasVideo ? 11.5 : 19;
+  } else {
+    // 720P or higher
+    rate = hasVideo ? 25 : 41;
+  }
+
+  const durationSum = hasVideo ? (inputDuration + outputDuration) : outputDuration;
+  const credits = durationSum * rate;
+
+  return Math.ceil(credits) * params.outputNumber;
+}
+
 // ============================================================================
 // Main Calculator
 // ============================================================================
@@ -183,6 +215,9 @@ export function calculateVideoCredits(params: CreditCalculationParams): number {
 
     case "seedance-1.5-pro":
       return calculateSeedanceCredits(params);
+
+    case "seedance-2.0":
+      return calculateSeedance20Credits(params);
 
     default:
       // 默认计算：基础积分 × 输出数量

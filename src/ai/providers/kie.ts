@@ -11,7 +11,7 @@ import {
 
 export class KieProvider implements AIVideoProvider {
   name = "kie";
-  supportImageToVideo = false; // kie only supports text-to-video
+  supportImageToVideo = true; // kie supports image-to-video via Seedance 2 and others
   private apiKey: string;
   private baseUrl = "https://api.kie.ai";
 
@@ -46,6 +46,8 @@ export class KieProvider implements AIVideoProvider {
       body.callBackUrl = params.callbackUrl;
     }
 
+    console.log("KIE API Request Body:", JSON.stringify(body, null, 2));
+
     const response = await fetch(`${this.baseUrl}${apiEndpoint}`, {
       method: "POST",
       headers: {
@@ -56,10 +58,31 @@ export class KieProvider implements AIVideoProvider {
     });
 
     const result = await response.json();
+    console.log("KIE API Response:", JSON.stringify(result));
     if (result.code !== 200) throw new Error(result.msg || "API error");
 
+    // Extremely resilient ID extraction: search recursively or check multiple common paths
+    const findId = (obj: any): string | undefined => {
+      if (!obj || typeof obj !== 'object') return undefined;
+      const keys = ['taskId', 'recordId', 'jobId', 'id'];
+      for (const key of keys) {
+        if (typeof obj[key] === 'string' && obj[key]) return obj[key];
+      }
+      // Check data property recursively if not found at top level
+      if (obj.data) return findId(obj.data);
+      return undefined;
+    };
+
+    const taskId = findId(result);
+
+    if (!taskId) {
+      throw new Error(`generate playground failed, task id is blank. Parsed Result: ${JSON.stringify(result)}`);
+    }
+
+    console.log(`Successfully extracted Kie TaskID: ${taskId}`);
+
     return {
-      taskId: result.data.taskId,
+      taskId: taskId,
       provider: "kie",
       status: "pending",
       raw: result,
@@ -92,7 +115,7 @@ export class KieProvider implements AIVideoProvider {
     }
 
     return {
-      taskId: data.taskId,
+      taskId: data.taskId || taskId,
       provider: "kie",
       status: this.mapStatus(data.state),
       videoUrl,

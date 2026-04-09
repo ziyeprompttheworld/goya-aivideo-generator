@@ -1,6 +1,6 @@
 // AI Video Provider Types
 
-export type ProviderType = "evolink" | "kie" | "apimart";
+export type ProviderType = "evolink" | "kie" | "apimart" | "volcengine";
 
 // Unified video generation parameters
 export interface VideoGenerationParams {
@@ -11,6 +11,10 @@ export interface VideoGenerationParams {
   quality?: string;
   imageUrl?: string;
   imageUrls?: string[];
+  firstFrameUrl?: string;
+  lastFrameUrl?: string;
+  referenceImageUrls?: string[];
+  videoUrls?: string[];
   mode?: string;
   outputNumber?: number;
   generateAudio?: boolean;

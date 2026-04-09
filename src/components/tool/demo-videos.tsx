@@ -5,22 +5,20 @@
  * - 单个示例视频
  */
 
-import { Play } from "lucide-react";
 import { cn } from "@/components/ui";
 
 export function DemoVideos({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center justify-center", className)}>
-      <div className="w-full max-w-lg aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-zinc-800 relative group">
-        {/* 播放图标 */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform">
-            <Play className="w-8 h-8 text-white ml-1" />
+    <div className={cn("flex flex-col items-center justify-center gap-4 text-center", className)}>
+      <div className="w-full max-w-lg aspect-video border border-white/8 bg-white/[0.02] relative group overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <div className="w-10 h-10 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-colors">
+            <svg className="w-4 h-4 text-white/20 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </div>
+          <div className="text-[9px] text-white/20 uppercase tracking-[0.22em]">your video will appear here</div>
         </div>
-
-        {/* 悬停遮罩 */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </div>
   );

@@ -1,0 +1,28 @@
+const apiKey = process.env.KIE_API_KEY || "your-kie-api-key";
+
+async function test() {
+  const payload = {
+    model: "bytedance/seedance-2",
+    callBackUrl: "http://localhost:3000/api/v1/callbacks/kie",
+    input: {
+      prompt: "A beautiful scenery",
+      aspect_ratio: "16:9",
+      resolution: "720p",
+      duration: 5,
+      generate_audio: true
+    }
+  };
+
+  console.log("Sending payload:", JSON.stringify(payload));
+  const res = await fetch("https://api.kie.ai/api/v1/jobs/createTask", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  console.log(res.status);
+  console.log(await res.text());
+}
+test();

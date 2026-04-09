@@ -32,7 +32,7 @@ import { ToolLandingPage } from "@/components/tool/tool-landing-page";
 import { VideoHistoryPanel } from "@/components/tool/video-history-panel";
 import { toast } from "sonner";
 
-const TOOL_PREFILL_KEY = "videofly_tool_prefill";
+const TOOL_PREFILL_KEY = "goya_ai_tool_prefill";
 
 // ============================================================================
 // Types
@@ -89,7 +89,7 @@ export function ToolPageLayout({
   const { openModal } = useUpgradeModal();
   const { shouldNotify, markNotified, resetNotification } = useNotificationDeduplication();
   const videoIdFromQuery = searchParams.get("id");
-  const NOTIFICATION_ASKED_KEY = "videofly_notification_asked";
+  const NOTIFICATION_ASKED_KEY = "goya_ai_notification_asked";
   const tNotify = useTranslations("Notifications");
   const tTool = useTranslations("ToolPage");
 
@@ -669,32 +669,32 @@ export function ToolPageLayout({
   // Authenticated Layout: Three-column application mode
   return (
     <>
-      <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-6 bg-background">
-        {/* Mobile Tabs */}
-        {showMobileTabs && (
-          <div className="lg:hidden flex border-b border-border mb-4 shrink-0">
-            <button
-              type="button"
-              onClick={() => setActiveTab("generator")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "generator"
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-                }`}
-            >
-              {tTool("generator")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("result")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === "result"
-                ? "text-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-                }`}
-            >
-              {tTool("result")}
-            </button>
-          </div>
-        )}
+      <div className="flex flex-1 flex-col h-full overflow-hidden p-4 lg:p-4 gap-4 bg-black font-plex-mono">
+          {/* Mobile Tabs */}
+          {showMobileTabs && (
+            <div className="lg:hidden flex border-b border-white/8 mb-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab("generator")}
+                className={`flex-1 py-2.5 text-[10px] uppercase tracking-[0.18em] transition-colors ${activeTab === "generator"
+                  ? "text-white/80 border-b border-[#008fff]"
+                  : "text-white/30 hover:text-white/60"
+                  }`}
+              >
+                {tTool("generator")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("result")}
+                className={`flex-1 py-2.5 text-[10px] uppercase tracking-[0.18em] transition-colors ${activeTab === "result"
+                  ? "text-white/80 border-b border-[#008fff]"
+                  : "text-white/30 hover:text-white/60"
+                  }`}
+              >
+                {tTool("result")}
+              </button>
+            </div>
+          )}
 
         <div className="grid min-h-0 h-fit max-h-[calc(100svh-120px)] grid-cols-1 lg:grid-cols-[380px_minmax(0,1.2fr)] gap-5">
           {/* Generator Panel */}
@@ -702,7 +702,7 @@ export function ToolPageLayout({
             className={`${activeTab === "generator" ? "flex" : "hidden"
               } lg:flex flex-col h-full min-h-0`}
           >
-            <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
+            <div className="h-full min-h-0 border border-white/8 bg-black p-3">
               <GeneratorPanel
                 toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
                 isLoading={isSubmitting}

@@ -91,17 +91,15 @@ export function MyCreationsPage({ locale }: MyCreationsPageProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 font-plex-mono">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/8 pb-6">
         <div>
-          <h1 className="text-2xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-[22px] font-light text-white/80 lowercase tracking-tight">{t("title")}</h1>
+          <p className="text-[11px] text-white/25 mt-1 tracking-[0.1em] lowercase">
             {videos.length} {videos.length === 1 ? "creation" : "creations"}
           </p>
         </div>
-
-        {/* Filter */}
         <CreationFilter filter={filter} onFilterChange={handleFilterChange} />
       </div>
 
