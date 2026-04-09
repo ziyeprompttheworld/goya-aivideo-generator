@@ -203,7 +203,7 @@ function ShowcaseCard({ item }: { item: (typeof showcaseItems)[0] }) {
           muted
           loop
           playsInline
-          preload="none"
+          preload="metadata"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         >
           <source src={item.video} type="video/mp4" />
